@@ -9,7 +9,6 @@ import type {
 import type {
   BudgetSummary,
   BudgetVibe,
-  City,
   CostIndex,
   PaginationMeta,
   Stop,
@@ -106,6 +105,14 @@ const mapTripDetail = (trip: TripDetail): Trip => ({
   stops: trip.stops.map(mapStop)
 });
 
+const assertDateRange = (startDate: Date, endDate: Date): void => {
+  if (endDate < startDate) {
+    throw new AppError('endDate must be on or after startDate', 'VALIDATION_ERROR', 400, {
+      endDate: ['endDate must be on or after startDate']
+    });
+  }
+};
+
 export class TripsService {
   public async list(userId: string, query: ListTripsQueryDto): Promise<TripListResult> {
     const pagination = paginate(query);
@@ -164,6 +171,10 @@ export class TripsService {
     if (!existingTrip) {
       throw new AppError('Trip not found', 'NOT_FOUND', 404);
     }
+
+    const nextStartDate = dto.startDate ? new Date(dto.startDate) : existingTrip.startDate;
+    const nextEndDate = dto.endDate ? new Date(dto.endDate) : existingTrip.endDate;
+    assertDateRange(nextStartDate, nextEndDate);
 
     const data: Prisma.TripUncheckedUpdateInput = {};
     if (dto.title !== undefined) data.title = dto.title;

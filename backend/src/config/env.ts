@@ -9,11 +9,28 @@ const isEmailOrDisplayEmail = (value: string): boolean => {
   return email ? z.string().email().safeParse(email).success : false;
 };
 
-const envSchema = z.object({
+const optionalCsvUrls = z
+  .string()
+  .optional()
+  .transform((value) =>
+    value
+      ? value
+          .split(',')
+          .map((origin) => origin.trim())
+          .filter(Boolean)
+      : []
+  )
+  .pipe(z.array(z.string().url()));
+
+const envSchema = z
+  .object({
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default('7d'),
   GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+  UNSPLASH_ACCESS_KEY: z.string().optional(),
+  OPENTRIPMAP_API_KEY: z.string().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
@@ -29,9 +46,36 @@ const envSchema = z.object({
   TWILIO_SMS_FROM: z.string().optional(),
   TWILIO_WHATSAPP_FROM: z.string().optional(),
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+  CORS_ALLOWED_ORIGINS: optionalCsvUrls.default(''),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info')
-});
+  })
+  .superRefine((value, ctx) => {
+    const requireTogether = (
+      keys: Array<keyof typeof value>,
+      label: string
+    ): void => {
+      const present = keys.filter((key) => Boolean(value[key]));
+      if (present.length > 0 && present.length < keys.length) {
+        for (const key of keys) {
+          if (!value[key]) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [key],
+              message: `${String(key)} is required when ${label} is configured`
+            });
+          }
+        }
+      }
+    };
+
+    requireTogether(
+      ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'],
+      'Cloudinary'
+    );
+    requireTogether(['RESEND_API_KEY', 'RESEND_FROM_EMAIL'], 'Resend');
+    requireTogether(['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN'], 'Twilio');
+  });
 
 export const env = envSchema.parse(process.env);

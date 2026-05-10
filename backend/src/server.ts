@@ -9,6 +9,8 @@ import { activitiesRouter } from './modules/activities/activities.router';
 import { aiRouter } from './modules/ai/ai.router';
 import { authRouter } from './modules/auth/auth.router';
 import { citiesRouter } from './modules/cities/cities.router';
+import { communityRouter } from './modules/community/community.router';
+import { destinationsRouter } from './modules/destinations/destinations.router';
 import { docsRouter } from './modules/docs/docs.router';
 import { mapsRouter } from './modules/maps/maps.router';
 import { mediaRouter } from './modules/media/media.router';
@@ -24,6 +26,8 @@ const apiRouter = Router();
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/trips', tripsRouter);
 apiRouter.use('/cities', citiesRouter);
+apiRouter.use('/destinations', destinationsRouter);
+apiRouter.use('/community', communityRouter);
 apiRouter.use('/activities', activitiesRouter);
 apiRouter.use('/ai', aiRouter);
 apiRouter.use('/maps', mapsRouter);
@@ -32,11 +36,33 @@ apiRouter.use('/notifications', notificationsRouter);
 apiRouter.use('/docs', docsRouter);
 apiRouter.use('/public', publicRouter);
 
+const developmentOrigins =
+  env.NODE_ENV === 'production'
+    ? []
+    : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174'];
+
+const allowedOrigins = new Set([
+  new URL(env.FRONTEND_URL).origin,
+  ...env.CORS_ALLOWED_ORIGINS.map((origin) => new URL(origin).origin),
+  ...developmentOrigins
+]);
+
 export const createApp = (): express.Express => {
   const app = express();
 
   app.use(helmet());
-  app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (!origin || allowedOrigins.has(origin)) {
+          callback(null, true);
+          return;
+        }
+        callback(null, false);
+      },
+      credentials: true
+    })
+  );
   app.use(originGuard);
   app.use(cookieParser());
   app.use(express.json({ limit: '2mb' }));

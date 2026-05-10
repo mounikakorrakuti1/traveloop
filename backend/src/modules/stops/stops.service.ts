@@ -17,6 +17,15 @@ const mapStop = (stop: PrismaStop): Stop => ({
   accommodationCost: stop.accommodationCost ? Number(stop.accommodationCost) : null
 });
 
+const validationError = (field: string, message: string): AppError =>
+  new AppError(message, 'VALIDATION_ERROR', 400, { [field]: [message] });
+
+const assertStopDateRange = (arrivalDate: Date, departureDate: Date): void => {
+  if (departureDate < arrivalDate) {
+    throw validationError('departureDate', 'departureDate must be on or after arrivalDate');
+  }
+};
+
 export class StopsService {
   public async list(userId: string, tripId: string): Promise<Stop[]> {
     await this.assertTripOwnership(userId, tripId);
@@ -25,13 +34,18 @@ export class StopsService {
   }
 
   public async create(userId: string, tripId: string, dto: CreateStopDto): Promise<Stop> {
-    await this.assertTripOwnership(userId, tripId);
+    const trip = await this.assertTripOwnership(userId, tripId);
+    const arrivalDate = new Date(dto.arrivalDate);
+    const departureDate = new Date(dto.departureDate);
+    assertStopDateRange(arrivalDate, departureDate);
+    this.assertStopWithinTrip(trip.startDate, trip.endDate, arrivalDate, departureDate);
+
     const data: Prisma.StopUncheckedCreateInput = {
       tripId,
       cityId: dto.cityId,
       orderIndex: dto.orderIndex,
-      arrivalDate: new Date(dto.arrivalDate),
-      departureDate: new Date(dto.departureDate)
+      arrivalDate,
+      departureDate
     };
     if (dto.notes !== undefined) data.notes = dto.notes;
     if (dto.accommodationName !== undefined) data.accommodationName = dto.accommodationName;
@@ -43,12 +57,17 @@ export class StopsService {
   }
 
   public async update(userId: string, tripId: string, stopId: string, dto: UpdateStopDto): Promise<Stop> {
-    await this.assertStopOwnership(userId, tripId, stopId);
+    const { trip, stop: existingStop } = await this.assertStopOwnership(userId, tripId, stopId);
+    const arrivalDate = dto.arrivalDate ? new Date(dto.arrivalDate) : existingStop.arrivalDate;
+    const departureDate = dto.departureDate ? new Date(dto.departureDate) : existingStop.departureDate;
+    assertStopDateRange(arrivalDate, departureDate);
+    this.assertStopWithinTrip(trip.startDate, trip.endDate, arrivalDate, departureDate);
+
     const data: Prisma.StopUncheckedUpdateInput = {};
     if (dto.cityId !== undefined) data.cityId = dto.cityId;
     if (dto.orderIndex !== undefined) data.orderIndex = dto.orderIndex;
-    if (dto.arrivalDate !== undefined) data.arrivalDate = new Date(dto.arrivalDate);
-    if (dto.departureDate !== undefined) data.departureDate = new Date(dto.departureDate);
+    if (dto.arrivalDate !== undefined) data.arrivalDate = arrivalDate;
+    if (dto.departureDate !== undefined) data.departureDate = departureDate;
     if (dto.notes !== undefined) data.notes = dto.notes;
     if (dto.accommodationName !== undefined) data.accommodationName = dto.accommodationName;
     if (dto.accommodationCost !== undefined) data.accommodationCost = dto.accommodationCost;
@@ -77,18 +96,31 @@ export class StopsService {
     return stops.map(mapStop);
   }
 
-  private async assertTripOwnership(userId: string, tripId: string): Promise<void> {
+  private async assertTripOwnership(userId: string, tripId: string) {
     const trip = await tripsRepository.findOwnedById(tripId, userId);
     if (!trip) {
       throw new AppError('Trip not found', 'NOT_FOUND', 404);
     }
+    return trip;
   }
 
-  private async assertStopOwnership(userId: string, tripId: string, stopId: string): Promise<void> {
-    await this.assertTripOwnership(userId, tripId);
+  private async assertStopOwnership(userId: string, tripId: string, stopId: string) {
+    const trip = await this.assertTripOwnership(userId, tripId);
     const stop = await stopsRepository.findById(stopId);
     if (!stop || stop.tripId !== tripId) {
       throw new AppError('Stop not found', 'NOT_FOUND', 404);
+    }
+    return { trip, stop };
+  }
+
+  private assertStopWithinTrip(
+    tripStartDate: Date,
+    tripEndDate: Date,
+    arrivalDate: Date,
+    departureDate: Date
+  ): void {
+    if (arrivalDate < tripStartDate || departureDate > tripEndDate) {
+      throw validationError('arrivalDate', 'Stop dates must stay within the trip date range');
     }
   }
 }

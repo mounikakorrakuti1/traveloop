@@ -10,10 +10,13 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts --max-warnings 0",
     "test": "jest",
+    "test:deployed": "node scripts/smoke-test-deployed.js",
+    "validate:showcase": "node scripts/validate-showcase.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
-    "prisma:seed": "ts-node prisma/seed.ts"
+    "prisma:seed": "ts-node prisma/seed.ts",
+    "prisma:seed:showcase": "ts-node prisma/showcase-seed.ts"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

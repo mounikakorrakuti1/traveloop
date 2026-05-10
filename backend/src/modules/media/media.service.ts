@@ -25,6 +25,11 @@ const mapMedia = (media: PrismaMediaUpload): MediaUpload => ({
   cloudinaryUrl: media.cloudinaryUrl,
   cloudinaryId: media.cloudinaryId,
   caption: media.caption,
+  documentType: media.documentType,
+  fileName: media.fileName,
+  fileSizeBytes: media.fileSizeBytes,
+  mimeType: media.mimeType,
+  expiresAt: media.expiresAt?.toISOString().slice(0, 10) ?? null,
   createdAt: media.createdAt.toISOString()
 });
 
@@ -67,6 +72,11 @@ export class MediaService {
     };
     if (dto.stopId !== undefined) data.stopId = dto.stopId;
     if (dto.caption !== undefined) data.caption = dto.caption;
+    if (dto.documentType !== undefined) data.documentType = dto.documentType;
+    if (dto.fileName !== undefined) data.fileName = dto.fileName;
+    if (dto.fileSizeBytes !== undefined) data.fileSizeBytes = dto.fileSizeBytes;
+    if (dto.mimeType !== undefined) data.mimeType = dto.mimeType;
+    if (dto.expiresAt !== undefined) data.expiresAt = new Date(dto.expiresAt);
 
     const media = await mediaRepository.create(data);
     return mapMedia(media);

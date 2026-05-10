@@ -7,20 +7,20 @@ export const fallbackItinerary = (dto: ItineraryDto): GeneratedItinerary => ({
       city: 'Delhi',
       country: 'India',
       days: Math.max(1, Math.min(dto.days, 2)),
-      estimatedCostUsd: dto.vibe === 'luxury' ? 220 : dto.vibe === 'comfort' ? 120 : 55,
+      estimatedCostUsd: dto.vibe === 'luxury' ? 18000 : dto.vibe === 'comfort' ? 9500 : 3800,
       activities: [
-        { name: 'Heritage walk', category: 'cultural', costUsd: 18, durationHours: 2.5 },
-        { name: 'Local food trail', category: 'food', costUsd: 22, durationHours: 3 }
+        { name: 'Heritage walk', category: 'cultural', costUsd: 1500, durationHours: 2.5 },
+        { name: 'Local food trail', category: 'food', costUsd: 1800, durationHours: 3 }
       ]
     },
     {
       city: 'Jaipur',
       country: 'India',
       days: Math.max(1, dto.days - 2),
-      estimatedCostUsd: dto.vibe === 'luxury' ? 260 : dto.vibe === 'comfort' ? 140 : 65,
+      estimatedCostUsd: dto.vibe === 'luxury' ? 22000 : dto.vibe === 'comfort' ? 11500 : 4500,
       activities: [
-        { name: 'Fort and palace circuit', category: 'sightseeing', costUsd: 25, durationHours: 4 },
-        { name: 'Bazaar photography walk', category: 'cultural', costUsd: 12, durationHours: 2 }
+        { name: 'Fort and palace circuit', category: 'sightseeing', costUsd: 2200, durationHours: 4 },
+        { name: 'Bazaar photography walk', category: 'cultural', costUsd: 900, durationHours: 2 }
       ]
     }
   ]
@@ -35,11 +35,11 @@ export const fallbackPacking = (_dto: PackingSuggestionDto): PackingList[] => [
 
 export const fallbackBudget = (dto: BudgetEstimateDto): BudgetEstimate => {
   const multiplier = dto.vibe === 'luxury' ? 2.2 : dto.vibe === 'comfort' ? 1.35 : 0.75;
-  const accommodationUsd = Math.round(45 * multiplier);
-  const foodUsd = Math.round(18 * multiplier);
-  const activitiesUsd = Math.round(25 * multiplier);
+  const accommodationUsd = Math.round(4500 * multiplier);
+  const foodUsd = Math.round(1600 * multiplier);
+  const activitiesUsd = Math.round(2400 * multiplier);
   return {
-    cityId: dto.cityId,
+    cityId: dto.cityId ?? 'context',
     cityName: dto.cityName,
     perDayUsd: accommodationUsd + foodUsd + activitiesUsd,
     accommodationUsd,

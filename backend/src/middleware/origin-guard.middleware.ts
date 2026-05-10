@@ -3,7 +3,16 @@ import { env } from '../config/env';
 import { AppError } from './error-handler';
 
 const safeMethods = new Set(['GET', 'HEAD', 'OPTIONS']);
-const allowedOrigin = new URL(env.FRONTEND_URL).origin;
+const developmentOrigins =
+  env.NODE_ENV === 'production'
+    ? []
+    : ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174'];
+
+const allowedOrigins = new Set([
+  new URL(env.FRONTEND_URL).origin,
+  ...env.CORS_ALLOWED_ORIGINS.map((origin) => new URL(origin).origin),
+  ...developmentOrigins
+]);
 
 const requestOrigin = (req: Request): string | null => {
   const origin = req.get('origin');
@@ -30,7 +39,7 @@ export const originGuard = (req: Request, _res: Response, next: NextFunction): v
   }
 
   const origin = requestOrigin(req);
-  if (origin === allowedOrigin || (env.NODE_ENV !== 'production' && origin === null)) {
+  if ((origin && allowedOrigins.has(origin)) || (env.NODE_ENV !== 'production' && origin === null)) {
     next();
     return;
   }

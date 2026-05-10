@@ -3,7 +3,7 @@ import { authMiddleware } from '../../middleware/auth.middleware';
 import { authRateLimiter } from '../../middleware/rate-limiter';
 import { validate } from '../../middleware/validate.middleware';
 import { authController } from './auth.controller';
-import { forgotPasswordDto, loginDto, registerDto, resetPasswordDto } from './auth.dto';
+import { forgotPasswordDto, loginDto, registerDto, resetPasswordDto, updateProfileDto } from './auth.dto';
 
 export const authRouter = Router();
 
@@ -28,3 +28,4 @@ authRouter.post(
   authController.resetPassword
 );
 authRouter.get('/me', authMiddleware, authController.me);
+authRouter.put('/profile', authMiddleware, validate({ body: updateProfileDto }), authController.updateProfile);

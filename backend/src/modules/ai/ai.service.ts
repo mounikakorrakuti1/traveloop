@@ -13,6 +13,7 @@ const stripMarkdownJson = (value: string): string =>
     .replace(/\s*```$/i, '');
 
 const parseJson = <T>(value: string): T => JSON.parse(stripMarkdownJson(value)) as T;
+const contextLine = (value?: string): string => (value ? `User context: ${value}.` : '');
 
 export class AiService {
   private async generateJson<T>(prompt: string): Promise<T> {
@@ -22,7 +23,7 @@ export class AiService {
 
     const startedAt = Date.now();
     const model = new GoogleGenerativeAI(env.GEMINI_API_KEY).getGenerativeModel({
-      model: 'gemini-1.5-flash'
+      model: env.GEMINI_MODEL
     });
     const result = await model.generateContent(prompt);
     logger.info('Gemini request completed', { durationMs: Date.now() - startedAt });
@@ -31,7 +32,7 @@ export class AiService {
 
   public async itinerary(dto: ItineraryDto): Promise<GeneratedItinerary> {
     const prompt = `Generate a travel itinerary as JSON only. Destination prompt: ${dto.prompt}.
-Days: ${dto.days}. Budget style: ${dto.vibe}. Traveler type: ${dto.tripType}.
+Days: ${dto.days}. Budget style: ${dto.vibe}. Traveler type: ${dto.tripType}. ${contextLine(dto.userContext)}
 Return shape: {"stops":[{"city":"string","country":"string","days":1,"estimatedCostUsd":100,"activities":[{"name":"string","category":"sightseeing|food|adventure|cultural","costUsd":10,"durationHours":2}]}]}`;
     try {
       return await this.generateJson<GeneratedItinerary>(prompt);
@@ -42,7 +43,7 @@ Return shape: {"stops":[{"city":"string","country":"string","days":1,"estimatedC
   }
 
   public async packing(dto: PackingSuggestionDto): Promise<PackingList[]> {
-    const prompt = `Generate a travel packing list as JSON only for ${dto.destination}, ${dto.days} days, ${dto.tripType}, season ${dto.season ?? 'unknown'}.
+    const prompt = `Generate a travel packing list as JSON only for ${dto.destination}, ${dto.days} days, ${dto.tripType}, season ${dto.season ?? 'unknown'}. ${contextLine(dto.userContext)}
 Return shape: [{"category":"string","items":["string"]}]`;
     try {
       return await this.generateJson<PackingList[]>(prompt);
@@ -53,8 +54,8 @@ Return shape: [{"category":"string","items":["string"]}]`;
   }
 
   public async budget(dto: BudgetEstimateDto): Promise<BudgetEstimate> {
-    const prompt = `Generate a per-day travel budget estimate as JSON only for ${dto.cityName}, vibe ${dto.vibe}.
-Return shape: {"cityId":"${dto.cityId}","cityName":"${dto.cityName}","perDayUsd":100,"accommodationUsd":50,"foodUsd":25,"activitiesUsd":25}`;
+    const prompt = `Generate a realistic per-day Indian travel budget estimate in INR as JSON only for ${dto.cityName}, vibe ${dto.vibe}, traveler type ${dto.tripType ?? 'unknown'}, days ${dto.days ?? 'unknown'}. ${contextLine(dto.userContext)}
+Return shape: {"cityId":"${dto.cityId ?? 'context'}","cityName":"${dto.cityName}","perDayUsd":9000,"accommodationUsd":4500,"foodUsd":1800,"activitiesUsd":2700}. The field names are legacy; numeric values must be INR.`;
     try {
       return await this.generateJson<BudgetEstimate>(prompt);
     } catch (error) {

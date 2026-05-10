@@ -501,7 +501,7 @@ describe('implemented API route contracts', () => {
       cloudName: 'demo',
       apiKey: 'key',
       folder: 'traveloop',
-      resourceType: 'auto'
+      resourceType: 'image'
     });
     mockedMediaService.list.mockResolvedValueOnce([mediaUpload]);
     mockedMediaService.create.mockResolvedValueOnce(mediaUpload);
@@ -602,6 +602,49 @@ describe('implemented API route contracts', () => {
       .set('Cookie', [authCookie()])
       .expect(200);
     await request(app).get('/api/v1/docs/openapi.json').expect(200);
+  });
+
+  it('rejects invalid travel date ranges before services are called', async () => {
+    await request(app)
+      .post('/api/v1/trips')
+      .set('Cookie', [authCookie()])
+      .send({
+        title: trip.title,
+        startDate: '2026-06-05',
+        endDate: '2026-06-01',
+        tripType: trip.tripType
+      })
+      .expect(400)
+      .expect((response) => {
+        expect(response.body.details.endDate).toContain('endDate must be on or after startDate');
+      });
+
+    await request(app)
+      .post(`/api/v1/trips/${trip.id}/stops`)
+      .set('Cookie', [authCookie()])
+      .send({
+        cityId: city.id,
+        orderIndex: 0,
+        arrivalDate: '2026-06-03',
+        departureDate: '2026-06-01'
+      })
+      .expect(400)
+      .expect((response) => {
+        expect(response.body.details.departureDate).toContain('departureDate must be on or after arrivalDate');
+      });
+
+    await request(app)
+      .post('/api/v1/media/sign')
+      .set('Cookie', [authCookie()])
+      .send({ folder: '../secrets', resourceType: 'image' })
+      .expect(400)
+      .expect((response) => {
+        expect(response.body.details.folder).toBeDefined();
+      });
+
+    expect(mockedTripsService.create).not.toHaveBeenCalled();
+    expect(mockedStopsService.create).not.toHaveBeenCalled();
+    expect(mockedMediaService.signUpload).not.toHaveBeenCalled();
   });
 
   it('covers admin notification endpoints', async () => {

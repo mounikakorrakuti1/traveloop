@@ -14,7 +14,8 @@ export const itineraryDto = z
       'pilgrimage',
       'honeymoon',
       'business'
-    ])
+    ]),
+    userContext: z.string().max(1000).optional()
   })
   .strict();
 
@@ -23,15 +24,19 @@ export const packingSuggestionDto = z
     destination: z.string().min(1).max(255),
     days: z.number().int().positive().max(60),
     tripType: z.string().min(1).max(50),
-    season: z.string().max(100).optional()
+    season: z.string().max(100).optional(),
+    userContext: z.string().max(1000).optional()
   })
   .strict();
 
 export const budgetEstimateDto = z
   .object({
-    cityId: z.string().uuid(),
+    cityId: z.string().uuid().optional(),
     cityName: z.string().min(1).max(100),
-    vibe: z.enum(['backpacker', 'comfort', 'luxury']).default('comfort')
+    vibe: z.enum(['backpacker', 'comfort', 'luxury']).default('comfort'),
+    tripType: z.string().max(50).optional(),
+    days: z.number().int().positive().max(60).optional(),
+    userContext: z.string().max(1000).optional()
   })
   .strict();
 

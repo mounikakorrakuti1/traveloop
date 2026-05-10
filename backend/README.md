@@ -155,6 +155,27 @@ Run tests serially if you want cleaner output:
 npm test -- --runInBand
 ```
 
+Deployed API smoke test:
+
+```powershell
+$env:TRAVELOOP_API_URL="https://your-backend-url.example.com"
+$env:TEST_ORIGIN="https://your-frontend-url.example.com"
+npm run test:deployed
+```
+
+The deployed smoke test lives at `scripts/smoke-test-deployed.js`. It creates a temporary test user, logs in, creates a trip, stop, note, packing item, media record, AI requests, map route request, public share request, and then cleans up the trip data. It uses the deployed API only, so run migrations and seed data on the deployed database first.
+
+Optional deployed smoke test variables:
+
+```powershell
+$env:TEST_EMAIL="your-test-email@example.com"
+$env:TEST_PASSWORD="Password123"
+$env:TEST_PHONE="+15551234567"
+$env:ADMIN_JWT="paste-admin-jwt-here"
+```
+
+Set `ADMIN_JWT` only if you want the smoke test to call admin-only email/SMS/WhatsApp notification endpoints. Without it, those admin notification checks are reported as skipped.
+
 Manual API testing:
 
 1. Install the VS Code REST Client extension.

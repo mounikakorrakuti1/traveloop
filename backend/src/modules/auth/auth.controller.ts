@@ -62,6 +62,18 @@ export class AuthController {
     }
   };
 
+  public updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.user) {
+        throw new AppError('Authentication required', 'UNAUTHORIZED', 401);
+      }
+      const user = await authService.updateProfile(req.user.id, req.body);
+      res.status(200).json({ data: { user }, meta: null });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public forgotPassword = async (
     req: Request,
     res: Response,

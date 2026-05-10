@@ -69,7 +69,44 @@ export const resetPasswordDto = z
   })
   .strict();
 
+export const updateProfileDto = z
+  .object({
+    name: z.string().trim().min(2).max(100).optional(),
+    username: z
+      .preprocess(
+        (value) => (value === '' || value === null ? undefined : value),
+        z
+          .string()
+          .trim()
+          .toLowerCase()
+          .min(3)
+          .max(40)
+          .regex(/^[a-z0-9_]+$/, 'Username can only contain lowercase letters, numbers, and underscores')
+          .optional()
+      ),
+    phoneNumber: optionalPhoneSchema,
+    avatarUrl: optionalUrlSchema,
+    bio: z.string().trim().max(500).optional(),
+    travelerProfile: z.enum(['solo', 'couple', 'family', 'senior', 'group']).optional(),
+    preferredBudgetMin: z.number().nonnegative().max(10000000).optional(),
+    preferredBudgetMax: z.number().nonnegative().max(10000000).optional(),
+    travelStyles: z.array(z.string().trim().min(1).max(40)).max(12).optional(),
+    travelPreferences: z.record(z.unknown()).optional()
+  })
+  .strict()
+  .refine(
+    (value) =>
+      value.preferredBudgetMin === undefined ||
+      value.preferredBudgetMax === undefined ||
+      value.preferredBudgetMax >= value.preferredBudgetMin,
+    {
+      message: 'Preferred max budget must be greater than or equal to preferred min budget',
+      path: ['preferredBudgetMax']
+    }
+  );
+
 export type RegisterDto = z.infer<typeof registerDto>;
 export type LoginDto = z.infer<typeof loginDto>;
 export type ForgotPasswordDto = z.infer<typeof forgotPasswordDto>;
 export type ResetPasswordDto = z.infer<typeof resetPasswordDto>;
+export type UpdateProfileDto = z.infer<typeof updateProfileDto>;

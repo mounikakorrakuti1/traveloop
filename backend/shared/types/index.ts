@@ -10,7 +10,7 @@ export type TripType =
   | 'business';
 export type TripStatus = 'planning' | 'confirmed' | 'ongoing' | 'completed';
 export type BudgetVibe = 'backpacker' | 'comfort' | 'luxury';
-export type MediaType = 'photo' | 'video';
+export type MediaType = 'photo' | 'video' | 'document';
 export type CostIndex = 'low' | 'medium' | 'high';
 
 export interface ApiResponse<T> {
@@ -34,9 +34,15 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  username?: string | null;
   phoneNumber?: string | null;
   avatarUrl?: string | null;
+  bio?: string | null;
   travelerProfile: TravelerProfile;
+  preferredBudgetMin?: number | null;
+  preferredBudgetMax?: number | null;
+  travelStyles?: string[];
+  travelPreferences?: Record<string, unknown> | null;
   isAdmin: boolean;
   createdAt: string;
 }
@@ -164,6 +170,11 @@ export interface MediaUpload {
   cloudinaryUrl: string;
   cloudinaryId: string;
   caption?: string | null;
+  documentType?: string | null;
+  fileName?: string | null;
+  fileSizeBytes?: number | null;
+  mimeType?: string | null;
+  expiresAt?: string | null;
   createdAt: string;
 }
 
