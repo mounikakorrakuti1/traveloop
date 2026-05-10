@@ -34,6 +34,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  phoneNumber?: string | null;
   avatarUrl?: string | null;
   travelerProfile: TravelerProfile;
   isAdmin: boolean;

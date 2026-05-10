@@ -21,5 +21,10 @@ authRouter.post(
   validate({ body: forgotPasswordDto }),
   authController.forgotPassword
 );
-authRouter.post('/reset-password', validate({ body: resetPasswordDto }), authController.resetPassword);
+authRouter.post(
+  '/reset-password',
+  authRateLimiter,
+  validate({ body: resetPasswordDto }),
+  authController.resetPassword
+);
 authRouter.get('/me', authMiddleware, authController.me);

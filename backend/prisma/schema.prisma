@@ -12,6 +12,7 @@ model User {
   email           String             @unique @db.VarChar(255)
   passwordHash    String             @map("password_hash") @db.VarChar(255)
   name            String             @db.VarChar(100)
+  phoneNumber     String?            @map("phone_number") @db.VarChar(20)
   avatarUrl       String?            @map("avatar_url") @db.Text
   travelerProfile String             @default("solo") @map("traveler_profile") @db.VarChar(20)
   language        String             @default("en") @db.VarChar(10)

@@ -19,6 +19,7 @@ const user = {
   id: '11111111-1111-4111-8111-111111111111',
   email: 'tester@traveloop.test',
   name: 'Test Traveler',
+  phoneNumber: '+919876543210',
   avatarUrl: null,
   travelerProfile: 'solo' as const,
   isAdmin: false,
@@ -278,7 +279,9 @@ describe('implemented API route contracts', () => {
   });
 
   it('covers auth endpoints', async () => {
-    mockedAuthService.register.mockResolvedValueOnce({ user, token: 'register.jwt' });
+    mockedAuthService.register
+      .mockResolvedValueOnce({ user, token: 'register.jwt' })
+      .mockResolvedValueOnce({ user, token: 'register-no-avatar.jwt' });
     mockedAuthService.login.mockResolvedValueOnce({ user, token: 'login.jwt' });
     mockedAuthService.me.mockResolvedValueOnce(user);
     mockedAuthService.forgotPassword.mockResolvedValueOnce();
@@ -291,7 +294,19 @@ describe('implemented API route contracts', () => {
         password: 'Password123',
         confirmPassword: 'Password123',
         name: user.name,
+        phoneNumber: '+91 98765 43210',
         avatarUrl: 'https://example.com/avatar.jpg',
+        travelerProfile: 'solo'
+      })
+      .expect(201);
+    await request(app)
+      .post('/api/v1/auth/register')
+      .send({
+        email: user.email,
+        password: 'Password123',
+        confirmPassword: 'Password123',
+        name: user.name,
+        phoneNumber: '+91 98765 43210',
         travelerProfile: 'solo'
       })
       .expect(201);
@@ -304,7 +319,7 @@ describe('implemented API route contracts', () => {
     await request(app).post('/api/v1/auth/forgot-password').send({ email: user.email }).expect(200);
     await request(app)
       .post('/api/v1/auth/reset-password')
-      .send({ email: user.email, otp: '123456', newPassword: 'newpass123' })
+      .send({ email: user.email, otp: '123456', newPassword: 'Newpass123' })
       .expect(200);
   });
 
@@ -314,6 +329,7 @@ describe('implemented API route contracts', () => {
       password: 'Password123',
       confirmPassword: 'Password123',
       name: user.name,
+      phoneNumber: '+919876543210',
       avatarUrl: 'https://example.com/avatar.jpg',
       travelerProfile: 'solo'
     };
@@ -328,10 +344,18 @@ describe('implemented API route contracts', () => {
 
     await request(app)
       .post('/api/v1/auth/register')
-      .send({ ...validRegistration, avatarUrl: undefined })
+      .send({ ...validRegistration, avatarUrl: 'not-a-url' })
       .expect(400)
       .expect((response) => {
         expect(response.body.details.avatarUrl).toBeDefined();
+      });
+
+    await request(app)
+      .post('/api/v1/auth/register')
+      .send({ ...validRegistration, phoneNumber: '123' })
+      .expect(400)
+      .expect((response) => {
+        expect(response.body.details.phoneNumber).toBeDefined();
       });
 
     await request(app)

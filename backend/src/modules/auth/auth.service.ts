@@ -19,11 +19,18 @@ const mapUser = (user: PrismaUser): User => ({
   id: user.id,
   email: user.email,
   name: user.name,
+  phoneNumber: user.phoneNumber,
   avatarUrl: user.avatarUrl,
   travelerProfile: user.travelerProfile as User['travelerProfile'],
   isAdmin: user.isAdmin,
   createdAt: user.createdAt.toISOString()
 });
+
+const normalizePhoneNumber = (phoneNumber?: string): string | undefined => {
+  if (!phoneNumber) return undefined;
+  const normalized = phoneNumber.replace(/[\s().-]/g, '');
+  return normalized.length > 0 ? normalized : undefined;
+};
 
 export class AuthService {
   public async register(dto: RegisterDto): Promise<AuthResult> {
@@ -39,12 +46,17 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
-    const user = await authRepository.createUser({
+    const phoneNumber = normalizePhoneNumber(dto.phoneNumber);
+    const createInput = {
       email: dto.email.toLowerCase(),
       passwordHash,
       name: dto.name,
-      avatarUrl: dto.avatarUrl,
       travelerProfile: dto.travelerProfile
+    };
+    const user = await authRepository.createUser({
+      ...createInput,
+      ...(phoneNumber ? { phoneNumber } : {}),
+      ...(dto.avatarUrl ? { avatarUrl: dto.avatarUrl } : {})
     });
 
     try {
@@ -109,6 +121,13 @@ export class AuthService {
     const validOtp = await bcrypt.compare(dto.otp, user.otpHash);
     if (!validOtp) {
       throw new AppError('Invalid or expired OTP', 'UNAUTHORIZED', 401);
+    }
+
+    const samePassword = await bcrypt.compare(dto.newPassword, user.passwordHash);
+    if (samePassword) {
+      throw new AppError('New password must be different from the current password', 'VALIDATION_ERROR', 400, {
+        newPassword: ['New password must be different from the current password']
+      });
     }
 
     const passwordHash = await bcrypt.hash(dto.newPassword, 12);
