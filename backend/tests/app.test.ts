@@ -29,6 +29,7 @@ jest.mock('../src/modules/notifications/notifications.service', () => ({
     sendEmail: jest.fn(),
     sendSms: jest.fn(),
     sendWhatsApp: jest.fn(),
+    sendRegistrationWelcome: jest.fn(),
     sendPasswordResetOtp: jest.fn()
   }
 }));

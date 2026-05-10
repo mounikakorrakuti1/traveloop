@@ -263,13 +263,14 @@ Register body:
 {
   "email": "user@example.com",
   "password": "Password123",
+  "confirmPassword": "Password123",
   "name": "Test User",
   "avatarUrl": "https://example.com/avatar.jpg",
   "travelerProfile": "solo"
 }
 ```
 
-Registration is intentionally strict: `name` must contain at least 2 characters, `avatarUrl` is required and must be a valid URL, and `password` must be 8-128 characters with at least one uppercase letter, one lowercase letter, and one number. Login accepts a valid email and an 8-128 character password.
+Registration is intentionally strict: `name` must contain at least 2 characters, `avatarUrl` is required and must be a valid URL, `password` must be 8-128 characters with at least one uppercase letter, one lowercase letter, and one number, and `confirmPassword` must match `password`. After a successful registration, the backend sends a welcome email through the notification service; email delivery failures are logged but do not roll back the created account. Login accepts a valid email and an 8-128 character password.
 
 Login body:
 

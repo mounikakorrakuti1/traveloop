@@ -222,6 +222,7 @@ jest.mock('../src/modules/notifications/notifications.service', () => ({
     sendEmail: jest.fn(),
     sendSms: jest.fn(),
     sendWhatsApp: jest.fn(),
+    sendRegistrationWelcome: jest.fn(),
     sendPasswordResetOtp: jest.fn()
   }
 }));
@@ -288,6 +289,7 @@ describe('implemented API route contracts', () => {
       .send({
         email: user.email,
         password: 'Password123',
+        confirmPassword: 'Password123',
         name: user.name,
         avatarUrl: 'https://example.com/avatar.jpg',
         travelerProfile: 'solo'
@@ -304,6 +306,43 @@ describe('implemented API route contracts', () => {
       .post('/api/v1/auth/reset-password')
       .send({ email: user.email, otp: '123456', newPassword: 'newpass123' })
       .expect(200);
+  });
+
+  it('rejects invalid registration edge cases before auth service is called', async () => {
+    const validRegistration = {
+      email: user.email,
+      password: 'Password123',
+      confirmPassword: 'Password123',
+      name: user.name,
+      avatarUrl: 'https://example.com/avatar.jpg',
+      travelerProfile: 'solo'
+    };
+
+    await request(app)
+      .post('/api/v1/auth/register')
+      .send({ ...validRegistration, confirmPassword: 'Password124' })
+      .expect(400)
+      .expect((response) => {
+        expect(response.body.details.confirmPassword).toContain('Confirm password must match password');
+      });
+
+    await request(app)
+      .post('/api/v1/auth/register')
+      .send({ ...validRegistration, avatarUrl: undefined })
+      .expect(400)
+      .expect((response) => {
+        expect(response.body.details.avatarUrl).toBeDefined();
+      });
+
+    await request(app)
+      .post('/api/v1/auth/register')
+      .send({ ...validRegistration, password: 'password123', confirmPassword: 'password123' })
+      .expect(400)
+      .expect((response) => {
+        expect(response.body.details.password).toContain('Password must include uppercase, lowercase, and number');
+      });
+
+    expect(mockedAuthService.register).not.toHaveBeenCalled();
   });
 
   it('covers public city and activity endpoints', async () => {

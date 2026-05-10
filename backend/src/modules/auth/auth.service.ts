@@ -27,6 +27,12 @@ const mapUser = (user: PrismaUser): User => ({
 
 export class AuthService {
   public async register(dto: RegisterDto): Promise<AuthResult> {
+    if (dto.password !== dto.confirmPassword) {
+      throw new AppError('Confirm password must match password', 'VALIDATION_ERROR', 400, {
+        confirmPassword: ['Confirm password must match password']
+      });
+    }
+
     const existingUser = await authRepository.findByEmail(dto.email.toLowerCase());
     if (existingUser) {
       throw new AppError('Email is already registered', 'CONFLICT', 409);
@@ -40,6 +46,18 @@ export class AuthService {
       avatarUrl: dto.avatarUrl,
       travelerProfile: dto.travelerProfile
     });
+
+    try {
+      await notificationsService.sendRegistrationWelcome(user.email, user.name);
+      logger.info('Registration welcome email sent', { userId: user.id, action: 'REGISTRATION_WELCOME' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown notification error';
+      logger.warn('Registration welcome email failed', {
+        userId: user.id,
+        action: 'REGISTRATION_WELCOME_FAILED',
+        error: message
+      });
+    }
 
     return { user: mapUser(user), token: this.signToken(user) };
   }

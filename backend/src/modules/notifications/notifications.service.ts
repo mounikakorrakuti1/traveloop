@@ -82,6 +82,15 @@ export class NotificationsService {
     });
   }
 
+  public async sendRegistrationWelcome(email: string, name: string): Promise<void> {
+    await this.sendEmail({
+      to: email,
+      subject: 'Welcome to Traveloop',
+      text: `Hi ${name}, your Traveloop account was created successfully. You can now start planning your trips.`,
+      html: `<p>Hi ${name},</p><p>Your Traveloop account was created successfully. You can now start planning your trips.</p>`
+    });
+  }
+
   private async sendTwilioMessage(
     from: string,
     to: string,

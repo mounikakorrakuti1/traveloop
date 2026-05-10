@@ -17,6 +17,7 @@ Content-Type: application/json
 {
   "email": "{{email}}",
   "password": "{{password}}",
+  "confirmPassword": "{{password}}",
   "name": "Test Traveler",
   "avatarUrl": "https://res.cloudinary.com/demo/image/upload/sample.jpg",
   "travelerProfile": "solo"
