@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String             @id @default(uuid()) @db.Uuid
+  email           String             @unique @db.VarChar(255)
+  passwordHash    String             @map("password_hash") @db.VarChar(255)
+  name            String             @db.VarChar(100)
+  avatarUrl       String?            @map("avatar_url") @db.Text
+  travelerProfile String             @default("solo") @map("traveler_profile") @db.VarChar(20)
+  language        String             @default("en") @db.VarChar(10)
+  isAdmin         Boolean            @default(false) @map("is_admin")
+  otpHash         String?            @map("otp_hash") @db.VarChar(255)
+  otpExpiresAt    DateTime?          @map("otp_expires_at") @db.Timestamp(6)
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime           @updatedAt @map("updated_at") @db.Timestamp(6)
+  trips           Trip[]
+  mediaUploads    MediaUpload[]
+  passwordOtps    PasswordResetOtp[]
+
+  @@index([email], map: "idx_users_email")
+  @@map("users")
+}
+
+model Trip {
+  id            String        @id @default(uuid()) @db.Uuid
+  userId        String        @map("user_id") @db.Uuid
+  title         String        @db.VarChar(255)
+  description   String?       @db.Text
+  coverPhotoUrl String?       @map("cover_photo_url") @db.Text
+  startDate     DateTime      @map("start_date") @db.Date
+  endDate       DateTime      @map("end_date") @db.Date
+  tripType      String        @map("trip_type") @db.VarChar(30)
+  budgetCapUsd  Decimal?      @map("budget_cap_usd") @db.Decimal(10, 2)
+  vibe          String?       @db.VarChar(20)
+  isPublic      Boolean       @default(false) @map("is_public")
+  publicSlug    String?       @unique @map("public_slug") @db.VarChar(100)
+  status        String        @default("planning") @db.VarChar(20)
+  deletedAt     DateTime?     @map("deleted_at") @db.Timestamp(6)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamp(6)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stops         Stop[]
+  packingItems  PackingItem[]
+  tripNotes     TripNote[]
+  mediaUploads  MediaUpload[]
+
+  @@index([userId], map: "idx_trips_user_id")
+  @@index([publicSlug], map: "idx_trips_public_slug")
+  @@index([status], map: "idx_trips_status")
+  @@map("trips")
+}
+
+model City {
+  id            String                 @id @default(uuid()) @db.Uuid
+  name          String                 @db.VarChar(100)
+  state         String?                @db.VarChar(100)
+  country       String                 @db.VarChar(100)
+  countryCode   String                 @map("country_code") @db.Char(2)
+  latitude      Decimal                @db.Decimal(9, 6)
+  longitude     Decimal                @db.Decimal(9, 6)
+  costIndex     String?                @map("cost_index") @db.VarChar(10)
+  areaType      String?                @map("area_type") @db.VarChar(20)
+  bestSeason    String?                @map("best_season") @db.VarChar(100)
+  isRegionalGem Boolean                @default(false) @map("is_regional_gem")
+  thumbnailUrl  String?                @map("thumbnail_url") @db.Text
+  region        String?                @db.VarChar(50)
+  searchVector  Unsupported("tsvector")? @map("search_vector")
+  stops         Stop[]
+  activities    Activity[]
+
+  @@index([countryCode], map: "idx_cities_country_code")
+  @@map("cities")
+}
+
+model Stop {
+  id                String         @id @default(uuid()) @db.Uuid
+  tripId            String         @map("trip_id") @db.Uuid
+  cityId            String         @map("city_id") @db.Uuid
+  orderIndex        Int            @map("order_index")
+  arrivalDate       DateTime       @map("arrival_date") @db.Date
+  departureDate     DateTime       @map("departure_date") @db.Date
+  notes             String?        @db.Text
+  accommodationName String?        @map("accommodation_name") @db.VarChar(255)
+  accommodationCost Decimal?       @map("accommodation_cost") @db.Decimal(8, 2)
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamp(6)
+  trip              Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  city              City           @relation(fields: [cityId], references: [id])
+  stopActivities    StopActivity[]
+  tripNotes         TripNote[]
+  mediaUploads      MediaUpload[]
+
+  @@index([tripId], map: "idx_stops_trip_id")
+  @@index([cityId], map: "idx_stops_city_id")
+  @@map("stops")
+}
+
+model Activity {
+  id               String         @id @default(uuid()) @db.Uuid
+  cityId           String         @map("city_id") @db.Uuid
+  name             String         @db.VarChar(255)
+  category         String         @db.VarChar(50)
+  tripTypeTags     Json           @map("trip_type_tags")
+  estimatedCostUsd Decimal        @map("estimated_cost_usd") @db.Decimal(8, 2)
+  durationHours    Decimal        @map("duration_hours") @db.Decimal(4, 1)
+  description      String?        @db.Text
+  imageUrl         String?        @map("image_url") @db.Text
+  city             City           @relation(fields: [cityId], references: [id])
+  stopActivities   StopActivity[]
+
+  @@index([cityId], map: "idx_activities_city_id")
+  @@map("activities")
+}
+
+model StopActivity {
+  id            String    @id @default(uuid()) @db.Uuid
+  stopId        String    @map("stop_id") @db.Uuid
+  activityId    String    @map("activity_id") @db.Uuid
+  scheduledTime DateTime? @map("scheduled_time") @db.Time(6)
+  actualCostUsd Decimal?  @map("actual_cost_usd") @db.Decimal(8, 2)
+  isCompleted   Boolean   @default(false) @map("is_completed")
+  stop          Stop      @relation(fields: [stopId], references: [id], onDelete: Cascade)
+  activity      Activity  @relation(fields: [activityId], references: [id])
+
+  @@index([stopId], map: "idx_sa_stop_id")
+  @@map("stop_activities")
+}
+
+model PackingItem {
+  id          String  @id @default(uuid()) @db.Uuid
+  tripId      String  @map("trip_id") @db.Uuid
+  name        String  @db.VarChar(255)
+  category    String  @db.VarChar(50)
+  isPacked    Boolean @default(false) @map("is_packed")
+  aiSuggested Boolean @default(false) @map("ai_suggested")
+  trip        Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId], map: "idx_packing_trip_id")
+  @@map("packing_items")
+}
+
+model TripNote {
+  id          String   @id @default(uuid()) @db.Uuid
+  tripId      String   @map("trip_id") @db.Uuid
+  stopId      String?  @map("stop_id") @db.Uuid
+  title       String   @db.VarChar(255)
+  content     String   @db.Text
+  noteType    String   @map("note_type") @db.VarChar(20)
+  isImportant Boolean  @default(false) @map("is_important")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  stop        Stop?    @relation(fields: [stopId], references: [id], onDelete: SetNull)
+
+  @@index([tripId], map: "idx_notes_trip_id")
+  @@map("trip_notes")
+}
+
+model MediaUpload {
+  id            String   @id @default(uuid()) @db.Uuid
+  tripId        String   @map("trip_id") @db.Uuid
+  stopId        String?  @map("stop_id") @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  mediaType     String   @map("media_type") @db.VarChar(10)
+  cloudinaryUrl String   @map("cloudinary_url") @db.Text
+  cloudinaryId  String   @map("cloudinary_id") @db.VarChar(255)
+  caption       String?  @db.Text
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  trip          Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  stop          Stop?    @relation(fields: [stopId], references: [id], onDelete: SetNull)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tripId], map: "idx_media_trip_id")
+  @@map("media_uploads")
+}
+
+model PasswordResetOtp {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  otpHash   String   @map("otp_hash") @db.VarChar(255)
+  expiresAt DateTime @map("expires_at") @db.Timestamp(6)
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "idx_password_otps_user_id")
+  @@map("password_reset_otps")
+}

@@ -1,0 +1,346 @@
+@baseUrl = http://localhost:3000
+@frontendOrigin = http://localhost:5173
+@email = tester+{{$timestamp}}@traveloop.test
+@password = Password123
+@cityId = 11111111-1111-4111-8111-111111111111
+@adminToken = paste-admin-jwt-here
+
+### Health
+GET {{baseUrl}}/health
+
+### Register
+# @name register
+POST {{baseUrl}}/api/v1/auth/register
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}",
+  "confirmPassword": "{{password}}",
+  "name": "Test Traveler",
+  "avatarUrl": "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+  "travelerProfile": "solo"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/api/v1/auth/login
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Me
+GET {{baseUrl}}/api/v1/auth/me
+
+### Forgot Password
+POST {{baseUrl}}/api/v1/auth/forgot-password
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### Reset Password
+POST {{baseUrl}}/api/v1/auth/reset-password
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "otp": "123456",
+  "newPassword": "NewPassword123"
+}
+
+### Cities List
+GET {{baseUrl}}/api/v1/cities?q=delhi&page=1&limit=20
+
+### City Detail
+GET {{baseUrl}}/api/v1/cities/{{cityId}}
+
+### Activities List
+# @name activitiesList
+GET {{baseUrl}}/api/v1/activities?cityId={{cityId}}&page=1&limit=20
+
+### Activity Detail
+GET {{baseUrl}}/api/v1/activities/{{activitiesList.response.body.$.data[0].id}}
+
+### Create Trip
+# @name createTrip
+POST {{baseUrl}}/api/v1/trips
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "title": "Manual API Test Trip",
+  "startDate": "2026-06-01",
+  "endDate": "2026-06-05",
+  "tripType": "solo",
+  "budgetCapUsd": 500,
+  "vibe": "comfort"
+}
+
+### Trips List
+GET {{baseUrl}}/api/v1/trips?page=1&limit=20
+
+### Trip Detail
+GET {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}
+
+### Update Trip
+PUT {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "title": "Updated Manual API Test Trip"
+}
+
+### Add Stop
+# @name createStop
+POST {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/stops
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "cityId": "{{cityId}}",
+  "orderIndex": 0,
+  "arrivalDate": "2026-06-01",
+  "departureDate": "2026-06-03"
+}
+
+### Stops List
+GET {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/stops
+
+### Trip Map Route
+GET {{baseUrl}}/api/v1/maps/trips/{{createTrip.response.body.$.data.id}}/route
+
+### Update Stop
+PUT {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/stops/{{createStop.response.body.$.data.id}}
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "notes": "Updated from API test file"
+}
+
+### Reorder Stops
+PUT {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/stops/reorder
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "stopOrders": [
+    {
+      "id": "{{createStop.response.body.$.data.id}}",
+      "orderIndex": 0
+    }
+  ]
+}
+
+### Assign Activity To Stop
+# @name assignActivity
+POST {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/stops/{{createStop.response.body.$.data.id}}/activities
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "activityId": "{{activitiesList.response.body.$.data[0].id}}"
+}
+
+### Trip Budget
+GET {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/budget
+
+### Create Note
+# @name createNote
+POST {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/notes
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "title": "Documents",
+  "content": "Carry ID and booking confirmations",
+  "noteType": "general",
+  "isImportant": true
+}
+
+### Notes List
+GET {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/notes
+
+### Update Note
+PUT {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/notes/{{createNote.response.body.$.data.id}}
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "content": "Carry ID, booking confirmations, and insurance copy"
+}
+
+### Create Packing Item
+# @name createPackingItem
+POST {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/packing-items
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "name": "Power bank",
+  "category": "electronics"
+}
+
+### Packing Items List
+GET {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/packing-items
+
+### Update Packing Item
+PUT {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/packing-items/{{createPackingItem.response.body.$.data.id}}
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "isPacked": true
+}
+
+### Sign Cloudinary Upload
+POST {{baseUrl}}/api/v1/media/sign
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "folder": "traveloop",
+  "resourceType": "auto"
+}
+
+### Create Media Record
+# @name createMedia
+POST {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/media
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "mediaType": "photo",
+  "cloudinaryUrl": "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+  "cloudinaryId": "traveloop/sample",
+  "caption": "Sample upload"
+}
+
+### Media List
+GET {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/media
+
+### AI Itinerary
+POST {{baseUrl}}/api/v1/ai/itinerary
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "prompt": "Rajasthan heritage trip",
+  "days": 3,
+  "vibe": "comfort",
+  "tripType": "solo"
+}
+
+### AI Packing
+POST {{baseUrl}}/api/v1/ai/packing
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "destination": "Jaipur",
+  "days": 3,
+  "tripType": "solo",
+  "season": "winter"
+}
+
+### AI Budget Estimate
+POST {{baseUrl}}/api/v1/ai/budget-estimate
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "cityId": "{{cityId}}",
+  "cityName": "Delhi",
+  "vibe": "comfort"
+}
+
+### Admin Send Email Notification
+# Requires an admin JWT pasted into @adminToken.
+POST {{baseUrl}}/api/v1/notifications/email
+Origin: {{frontendOrigin}}
+Cookie: token={{adminToken}}
+Content-Type: application/json
+
+{
+  "to": "{{email}}",
+  "subject": "Traveloop test email",
+  "text": "This is a Traveloop notification test."
+}
+
+### Admin Send SMS Notification
+# Requires Twilio SMS env vars and an admin JWT pasted into @adminToken.
+POST {{baseUrl}}/api/v1/notifications/sms
+Origin: {{frontendOrigin}}
+Cookie: token={{adminToken}}
+Content-Type: application/json
+
+{
+  "to": "+15551234567",
+  "message": "This is a Traveloop SMS test."
+}
+
+### Admin Send WhatsApp Notification
+# Requires Twilio WhatsApp env vars and an admin JWT pasted into @adminToken.
+POST {{baseUrl}}/api/v1/notifications/whatsapp
+Origin: {{frontendOrigin}}
+Cookie: token={{adminToken}}
+Content-Type: application/json
+
+{
+  "to": "+15551234567",
+  "message": "This is a Traveloop WhatsApp test."
+}
+
+### API Docs JSON
+GET {{baseUrl}}/api/v1/docs/openapi.json
+
+### Publish Trip
+# @name publishTrip
+PUT {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/publish
+Origin: {{frontendOrigin}}
+Content-Type: application/json
+
+{
+  "isPublic": true
+}
+
+### Public Trip
+GET {{baseUrl}}/api/v1/public/trips/{{publishTrip.response.body.$.data.publicSlug}}
+
+### Remove Activity From Stop
+DELETE {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/stops/{{createStop.response.body.$.data.id}}/activities/{{assignActivity.response.body.$.data.id}}
+Origin: {{frontendOrigin}}
+
+### Delete Media
+DELETE {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/media/{{createMedia.response.body.$.data.id}}
+Origin: {{frontendOrigin}}
+
+### Delete Packing Item
+DELETE {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/packing-items/{{createPackingItem.response.body.$.data.id}}
+Origin: {{frontendOrigin}}
+
+### Delete Note
+DELETE {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/notes/{{createNote.response.body.$.data.id}}
+Origin: {{frontendOrigin}}
+
+### Delete Stop
+DELETE {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}/stops/{{createStop.response.body.$.data.id}}
+Origin: {{frontendOrigin}}
+
+### Delete Trip
+DELETE {{baseUrl}}/api/v1/trips/{{createTrip.response.body.$.data.id}}
+Origin: {{frontendOrigin}}
+
+### Logout
+POST {{baseUrl}}/api/v1/auth/logout
+Origin: {{frontendOrigin}}
