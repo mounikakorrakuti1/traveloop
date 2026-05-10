@@ -1,0 +1,226 @@
+/* ── Budget Breakdown ────────────────────────────────────── */
+.budget-root {
+  padding: var(--sp-xl) var(--sp-lg);
+  max-width: var(--max-w-2xl);
+  margin-inline: auto;
+}
+
+.budget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-xl);
+}
+
+.budget-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-extrabold);
+  color: var(--cl-text);
+  letter-spacing: var(--ls-tight);
+}
+
+/* Top summary grid */
+.budget-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: var(--sp-xl);
+  align-items: start;
+  margin-bottom: var(--sp-xl);
+}
+
+@media (max-width: 900px) {
+  .budget-summary-grid { grid-template-columns: 1fr; }
+}
+
+.budget-invoice-card {
+  background: var(--cl-bg);
+  border: 1px solid var(--cl-border);
+  border-radius: var(--br-2xl);
+  padding: var(--sp-xl);
+}
+
+.invoice-trip-meta {
+  display: grid;
+  grid-template-columns: 6rem 1fr 1fr;
+  gap: var(--sp-lg);
+  align-items: start;
+  margin-bottom: var(--sp-xl);
+}
+
+.invoice-logo {
+  width: 6rem;
+  height: 6rem;
+  border-radius: var(--br-xl);
+  background: linear-gradient(135deg, var(--cl-surface), var(--cl-surface-2));
+  display: grid;
+  place-items: center;
+  font-size: 2.5rem;
+  border: 1px solid var(--cl-border);
+}
+
+.invoice-trip-name {
+  font-family: var(--font-display);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--cl-text);
+  letter-spacing: var(--ls-tight);
+  margin-bottom: var(--sp-xs);
+}
+.invoice-trip-dates {
+  font-size: var(--fs-xs);
+  color: var(--cl-text-muted);
+}
+.invoice-trip-place {
+  font-size: var(--fs-xs);
+  color: var(--cl-text-muted);
+  margin-top: var(--sp-2xs);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+
+.invoice-meta-label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-wide);
+  color: var(--cl-text-muted);
+  text-transform: uppercase;
+  margin-bottom: var(--sp-xs);
+}
+.invoice-meta-value {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--cl-text);
+}
+
+/* Budget insight aside */
+.budget-insight-card {
+  background: linear-gradient(145deg, var(--cl-surface) 0%, var(--cl-surface-2) 100%);
+  border: 1px solid var(--cl-border-surface);
+  border-radius: var(--br-2xl);
+  padding: var(--sp-xl);
+  color: var(--cl-text-on-surface);
+}
+
+.budget-insight-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--sp-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+
+.budget-chart-ring {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-lg);
+  margin-bottom: var(--sp-lg);
+}
+.budget-ring-chart {
+  width: 6rem;
+  height: 6rem;
+  flex-shrink: 0;
+  position: relative;
+}
+.budget-ring-chart svg { transform: rotate(-90deg); }
+.ring-bg   { stroke: rgba(244,241,222,0.1); }
+.ring-fill { stroke: var(--cl-teal); stroke-linecap: round; transition: stroke-dashoffset 0.5s var(--tr-slow); }
+.ring-pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--cl-text-on-surface);
+}
+
+.budget-ring-legend { display: flex; flex-direction: column; gap: var(--sp-sm); }
+.budget-legend-item { display: flex; justify-content: space-between; gap: var(--sp-md); }
+.legend-label { font-size: var(--fs-xs); color: rgba(244,241,222,0.6); }
+.legend-value { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--cl-text-on-surface); }
+
+/* Expense table */
+.budget-table-wrap {
+  border: 1px solid var(--cl-border);
+  border-radius: var(--br-xl);
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.budget-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.budget-table thead {
+  background: var(--cl-surface);
+  color: var(--cl-text-on-surface);
+}
+.budget-table th {
+  padding: var(--sp-sm) var(--sp-md);
+  text-align: left;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.budget-table td {
+  padding: var(--sp-sm) var(--sp-md);
+  border-top: 1px solid var(--cl-border);
+  color: var(--cl-text);
+  vertical-align: middle;
+}
+
+.budget-table tbody tr {
+  transition: background-color var(--tr-fast);
+}
+.budget-table tbody tr:hover { background-color: var(--cl-bg-alt); }
+
+.budget-table tfoot td {
+  border-top: 2px solid var(--cl-border-strong);
+  font-weight: var(--fw-semibold);
+}
+
+.budget-table input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: var(--fs-sm);
+  color: var(--cl-text);
+  font-family: var(--font-body);
+  padding: 2px var(--sp-xs);
+  border-radius: var(--br-sm);
+  transition: background var(--tr-fast);
+}
+.budget-table input:focus {
+  background: var(--cl-bg-alt);
+}
+
+.budget-total-amount {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-extrabold);
+  color: var(--cl-accent);
+}
+
+.budget-table-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-md);
+  gap: var(--sp-md);
+  flex-wrap: wrap;
+  border-top: 1px solid var(--cl-border);
+}

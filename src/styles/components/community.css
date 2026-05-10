@@ -1,0 +1,183 @@
+/* ── Community Tab ───────────────────────────────────────── */
+.community-root {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: var(--sp-xl);
+  padding: var(--sp-xl) var(--sp-lg);
+  max-width: var(--max-w-xl);
+  margin-inline: auto;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .community-root { grid-template-columns: 1fr; }
+  .community-sidebar { display: none; }
+}
+
+.community-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-extrabold);
+  color: var(--cl-text);
+  letter-spacing: var(--ls-tight);
+  margin-bottom: var(--sp-md);
+}
+
+.community-compose {
+  background: var(--cl-bg);
+  border: 1px solid var(--cl-border);
+  border-radius: var(--br-2xl);
+  padding: var(--sp-lg);
+  margin-bottom: var(--sp-lg);
+}
+
+.compose-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-md);
+}
+
+.compose-textarea {
+  flex: 1;
+  resize: none;
+  min-height: 4rem;
+  background: var(--cl-bg-alt);
+  border: 1.5px solid var(--cl-border);
+  border-radius: var(--br-lg);
+  padding: var(--sp-sm) var(--sp-md);
+  font-size: var(--fs-sm);
+  font-family: var(--font-body);
+  color: var(--cl-text);
+  outline: none;
+  transition: border-color var(--tr-fast), box-shadow var(--tr-fast);
+}
+.compose-textarea::placeholder { color: var(--cl-text-subtle); }
+.compose-textarea:focus {
+  border-color: var(--cl-accent);
+  box-shadow: var(--focus-ring);
+}
+
+.compose-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-sm);
+  margin-top: var(--sp-sm);
+}
+
+/* Post card */
+.post-card {
+  display: grid;
+  grid-template-columns: 2.618rem 1fr;
+  gap: var(--sp-md);
+  background: var(--cl-bg);
+  border: 1px solid var(--cl-border);
+  border-radius: var(--br-xl);
+  padding: var(--sp-lg);
+  margin-bottom: var(--sp-md);
+  animation: fadeUp 0.4s var(--tr-slow) both;
+  transition: box-shadow var(--tr-base);
+}
+.post-card:hover { box-shadow: var(--shadow-md); }
+
+.post-avatar {
+  width: 2.618rem;
+  height: 2.618rem;
+  border-radius: var(--br-full);
+  background: linear-gradient(135deg, var(--cl-accent), var(--cl-warm));
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.post-body-author {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--cl-text);
+  margin-bottom: var(--sp-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+.post-timestamp {
+  font-size: var(--fs-xs);
+  color: var(--cl-text-subtle);
+  font-weight: var(--fw-regular);
+}
+
+.post-content {
+  font-size: var(--fs-sm);
+  color: var(--cl-text-muted);
+  line-height: var(--lh-body);
+  margin-bottom: var(--sp-md);
+}
+
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+}
+
+.post-action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  font-size: var(--fs-xs);
+  color: var(--cl-text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--sp-xs) var(--sp-sm);
+  border-radius: var(--br-md);
+  transition: all var(--tr-fast);
+}
+.post-action-btn:hover {
+  color: var(--cl-accent);
+  background: var(--cl-accent-light);
+}
+
+/* Sidebar */
+.community-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+  position: sticky;
+  top: calc(4rem + var(--sp-lg));
+}
+
+.community-sidebar-card {
+  background: var(--cl-bg);
+  border: 1px solid var(--cl-border);
+  border-radius: var(--br-xl);
+  padding: var(--sp-lg);
+}
+
+.sidebar-card-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--cl-text);
+  margin-bottom: var(--sp-md);
+}
+
+.trending-tag {
+  display: inline-block;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--cl-accent);
+  background: var(--cl-accent-light);
+  border-radius: var(--br-full);
+  padding: 3px var(--sp-sm);
+  margin: 2px;
+  cursor: pointer;
+  transition: all var(--tr-fast);
+}
+.trending-tag:hover {
+  background: var(--cl-accent);
+  color: #fff;
+}
