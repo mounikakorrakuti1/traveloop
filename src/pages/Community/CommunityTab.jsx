@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addCommunityComment, createCommunityPost, listCommunityFeed, toggleCommunityBookmark, toggleCommunityLike } from "@/api/community.api";
+import { addCommunityComment, createCommunityPost, listCommunityFeed, toggleCommunityLike } from "@/api/community.api";
 import { useAuthStore } from "@/store/authStore";
 import { QUERY_KEYS } from "@/lib/constants";
 import { SmartImage } from "@/components/shared/SmartImage";
@@ -32,7 +32,6 @@ export default function CommunityTabPage() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.communityFeed(1) });
   const createMutation = useMutation({ mutationFn: createCommunityPost, onSuccess: refresh });
   const likeMutation = useMutation({ mutationFn: toggleCommunityLike, onSuccess: refresh });
-  const bookmarkMutation = useMutation({ mutationFn: toggleCommunityBookmark, onSuccess: refresh });
   const commentMutation = useMutation({ mutationFn: ({ postId, body }) => addCommunityComment(postId, { body }), onSuccess: refresh });
 
   // Merge offline dummy data with live data

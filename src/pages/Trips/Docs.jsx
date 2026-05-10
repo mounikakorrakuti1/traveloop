@@ -7,7 +7,7 @@ import { useToast } from "@/components/shared/toast-context";
 import { formatDate } from "@/lib/format";
 import { ROUTES } from "@/lib/constants";
 import { SkeletonRow } from "@/components/shared/Skeleton";
-import { Download, FileText, Search, ShieldCheck, Trash2, Upload, ArrowLeft, Calendar, FileType, CheckCircle, AlertCircle } from "lucide-react";
+import { Download, FileText, Search, ShieldCheck, Trash2, Upload, ArrowLeft, Calendar, FileType, CheckCircle } from "lucide-react";
 import "@/styles/components/ui.css";
 import "@/styles/components/trips.css";
 

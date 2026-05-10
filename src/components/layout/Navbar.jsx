@@ -26,7 +26,6 @@ export function Navbar() {
 
   const [menuOpen, setMenuOpen]     = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [avatarFailed, setAvatarFailed] = useState(false);
   const dropdownRef = useRef(null);
 
   /* Close dropdown on outside click */
@@ -47,15 +46,6 @@ export function Navbar() {
   };
 
   const avatarUrl = user ? getUserAvatarUrl(user) : "";
-  const initials = user?.name
-    ? user.name
-        .split(" ")
-        .map((part) => part?.[0] || "")
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "?";
-
   return (
     <header className="navbar">
       <div className="navbar-inner">

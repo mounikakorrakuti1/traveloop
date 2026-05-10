@@ -4,7 +4,7 @@ import { listTrips } from "@/api/trips.api";
 import { searchCities } from "@/api/cities.api";
 import { QUERY_KEYS, ROUTES } from "@/lib/constants";
 import { useAuthStore } from "@/store/authStore";
-import { formatDate, getCityLabel, getTripBudget, usd } from "@/lib/format";
+import { formatDate, getTripBudget, usd } from "@/lib/format";
 import { getTripCardCoverUrl } from "@/lib/tripCover";
 import { getCityThumbnail } from "@/lib/cityImages";
 import { SmartImage } from "@/components/shared/SmartImage";

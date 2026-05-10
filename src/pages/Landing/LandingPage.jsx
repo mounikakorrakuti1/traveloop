@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ROUTES } from "@/lib/constants";
 import { useTheme } from "@/components/layout/ThemeProvider";
 import { usd } from "@/lib/format";
-import { Map, Banknote, Luggage, StickyNote, Globe, Sparkles, Plane, Calendar, Briefcase, Rocket, Umbrella, Castle, Mountain, Building2, Trees, Sun, Moon, Star, MapPin, Heart } from "lucide-react";
+import { Map, Banknote, Luggage, StickyNote, Globe, Sparkles, Plane, Calendar, Briefcase, Rocket, Castle, Mountain, Trees, Sun, Moon, Heart } from "lucide-react";
 import "@/styles/components/landing.css";
 import HeroFrameCanvas from "@/components/landing/HeroFrameCanvas";
 import DestinationImage from "@/components/landing/DestinationImage";

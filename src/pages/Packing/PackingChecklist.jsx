@@ -13,7 +13,7 @@ import { AiThinkingPanel } from "@/components/ai/AiThinkingPanel";
 import { SkeletonRow } from "@/components/shared/Skeleton";
 import "@/styles/components/packing.css";
 import "@/styles/components/ui.css";
-import { Luggage, PartyPopper, Package, Sparkles, Trash2, ArrowLeft, CheckCircle2, Circle, Check } from "lucide-react";
+import { Luggage, PartyPopper, Package, Sparkles, Trash2, ArrowLeft, CheckCircle2, Check } from "lucide-react";
 
 function daysBetween(startDate, endDate) {
   const start = new Date(startDate);

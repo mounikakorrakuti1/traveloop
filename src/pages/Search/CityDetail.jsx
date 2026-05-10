@@ -5,11 +5,11 @@ import { getCityById } from "@/api/cities.api";
 import { SmartImage } from "@/components/shared/SmartImage";
 import { Skeleton, SkeletonCard, SkeletonText } from "@/components/shared/Skeleton";
 import { QUERY_KEYS, ROUTES } from "@/lib/constants";
-import { getCityHeroImage, getCityImages } from "@/lib/cityImages";
+import { getCityImages } from "@/lib/cityImages";
 import { getDestinationData } from "@/lib/destinationData";
 import { searchTransport } from "@/lib/transportData";
 import { usd } from "@/lib/format";
-import { MapPin, Thermometer, Info, Compass, ShieldAlert, Navigation, Star, Palmtree, Utensils, IndianRupee } from "lucide-react";
+import { MapPin, Thermometer, Info, ShieldAlert, Navigation, Star, Palmtree, Utensils, IndianRupee } from "lucide-react";
 import "@/styles/components/ui.css";
 import "@/styles/components/destination.css";
 
