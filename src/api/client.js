@@ -2,7 +2,13 @@ import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 function getEnvBaseUrl() {
     const raw = import.meta.env.VITE_API_URL;
-    if (typeof raw === "string" && raw.length > 0) return raw.replace(/\/$/, "");
+    if (typeof raw === "string" && raw.length > 0) {
+        // Remove trailing slash
+        let url = raw.replace(/\/$/, "");
+        // Remove /api/v1 suffix if present to avoid duplication
+        url = url.replace(/\/api\/v1$/, "");
+        return url;
+    }
     return "http://localhost:3000";
 }
 /**
