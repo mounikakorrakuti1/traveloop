@@ -56,7 +56,7 @@ export default function LandingPage() {
         {/* Navbar — dark background */}
         <div className="landing-navbar landing-navbar-dark">
           <Link to={ROUTES.landing} className="landing-nav-logo">
-            <div className="landing-logo-mark">TL</div>
+            <div className="landing-logo-mark"><Plane size={20} strokeWidth={2.5} /></div>
             <span className="landing-logo-text">Travel-Loop</span>
           </Link>
 
@@ -70,8 +70,9 @@ export default function LandingPage() {
             <button
               onClick={toggleTheme}
               style={{
-                background: "rgba(244,241,222,0.08)",
-                border: "1px solid rgba(244,241,222,0.15)",
+                background: "rgba(17, 24, 39, 0.08)",
+                border: "1px solid rgba(17, 24, 39, 0.15)",
+                color: "#111827",
                 borderRadius: "var(--br-md)",
                 width: "2.25rem",
                 height: "2.25rem",
@@ -84,7 +85,7 @@ export default function LandingPage() {
             >
               {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <Link to={ROUTES.login}  className="btn btn-ghost btn-sm" style={{ color: "rgba(244,241,222,0.75)" }}>
+            <Link to={ROUTES.login}  className="btn btn-ghost btn-sm" style={{ color: "rgba(17, 24, 39, 0.75)" }}>
               Sign In
             </Link>
             <Link to={ROUTES.login} className="btn btn-primary btn-sm">
@@ -260,7 +261,7 @@ export default function LandingPage() {
         <div className="footer-inner">
           <div>
             <Link to={ROUTES.landing} className="landing-nav-logo" style={{ marginBottom: "var(--sp-md)", textDecoration: "none" }}>
-              <div className="landing-logo-mark">TL</div>
+              <div className="landing-logo-mark"><Plane size={20} strokeWidth={2.5} /></div>
               <span className="landing-logo-text">Travel-Loop</span>
             </Link>
             <p className="footer-brand-desc">

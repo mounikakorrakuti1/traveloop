@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
-import { Bell } from "lucide-react";
+import { Bell, Plane } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 import { getUserAvatarUrl } from "@/lib/avatar";
 import { useAuthStore } from "@/store/authStore";
@@ -51,7 +51,7 @@ export function Navbar() {
       <div className="navbar-inner">
         {/* Logo */}
         <Link to={ROUTES.home} className="navbar-logo">
-          <div className="navbar-logo-mark">TL</div>
+          <div className="navbar-logo-mark"><Plane size={18} strokeWidth={2.5} /></div>
           <span className="navbar-logo-text">Travel-Loop</span>
         </Link>
 

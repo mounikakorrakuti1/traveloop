@@ -18,7 +18,7 @@
 import { useEffect, useRef, useCallback } from "react";
 
 /* ─────────────────── Config ────────────────────────────────── */
-const TOTAL_FRAMES   = 144;
+const TOTAL_FRAMES   = 120;
 const FRAME_PREFIX   = "/images/ezgif-frame-";
 const LERP_SPEED     = 0.14;   // Cinematic smoothness (lower = smoother/laggier)
 const PRELOAD_BATCH  = 24;     // Frames per async batch
