@@ -30,12 +30,12 @@ const testimonials = [
 ];
 
 const destinations = [
-  { name: "Goa",      trips: "Heritage walk",     category: "cultural",    price: 1500, icon: Castle, big: true },
-  { name: "Gokarna",  trips: "Heritage walk",     category: "cultural",    price: 1500, icon: Castle },
-  { name: "Goa",      trips: "Local food trail",  category: "food",        price: 1800, icon: Trees },
-  { name: "Gokarna",  trips: "Local food trail",  category: "food",        price: 1800, icon: Mountain },
-  { name: "Goa",      trips: "Museum visit",      category: "sightseeing", price: 800,  icon: Castle },
-  { name: "Gokarna",  trips: "Museum visit",      category: "sightseeing", price: 800,  icon: Mountain },
+  { name: "Goa",      trips: "Heritage walk",     category: "cultural",    price: 1500, icon: Castle, big: true, image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Gokarna",  trips: "Heritage walk",     category: "cultural",    price: 1500, icon: Castle, image: "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Goa",      trips: "Local food trail",  category: "food",        price: 1800, icon: Trees, image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Gokarna",  trips: "Local food trail",  category: "food",        price: 1800, icon: Mountain, image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Goa",      trips: "Museum visit",      category: "sightseeing", price: 800,  icon: Castle, image: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1200&q=80" },
+  { name: "Gokarna",  trips: "Museum visit",      category: "sightseeing", price: 800,  icon: Mountain, image: "https://images.unsplash.com/photo-1600100397608-f010a9f7fd50?auto=format&fit=crop&w=1200&q=80" },
 ];
 
 export default function LandingPage() {
@@ -177,6 +177,7 @@ export default function LandingPage() {
                   query={`${d.trips} in ${d.name}`} 
                   icon={d.icon} 
                   big={d.big} 
+                  imageUrl={d.image}
                 />
                 <div className="dest-card-overlay" />
                 <div className="dest-card-content">

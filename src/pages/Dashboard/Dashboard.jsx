@@ -162,10 +162,10 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <div className="empty-state" style={{ background: "var(--cl-surface)", borderRadius: "var(--br-2xl)", padding: "var(--sp-3xl) var(--sp-xl)", border: "1px solid var(--cl-border)", textAlign: "center" }}>
-                <Map size={48} color="var(--cl-text-muted)" style={{ marginBottom: "var(--sp-md)" }} />
-                <h3 style={{ fontSize: "var(--fs-xl)", marginBottom: "var(--sp-xs)" }}>No trips yet</h3>
-                <p style={{ color: "var(--cl-text-muted)", marginBottom: "var(--sp-lg)" }}>Create your first itinerary and start exploring.</p>
+              <div className="empty-state" style={{ background: "var(--cl-surface)", borderRadius: "var(--br-2xl)", padding: "var(--sp-3xl) var(--sp-xl)", border: "1px solid var(--cl-border)", textAlign: "center", color: "var(--cl-text-on-surface)" }}>
+                <Map size={48} style={{ color: "var(--cl-text-on-surface)", opacity: 0.6, marginBottom: "var(--sp-md)" }} />
+                <h3 style={{ fontSize: "var(--fs-xl)", marginBottom: "var(--sp-xs)", color: "inherit" }}>No trips yet</h3>
+                <p style={{ color: "var(--cl-text-on-surface)", opacity: 0.7, marginBottom: "var(--sp-lg)" }}>Create your first itinerary and start exploring.</p>
                 <Link to={ROUTES.tripNew} className="btn btn-primary">Plan a Trip</Link>
               </div>
             )}
