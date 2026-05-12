@@ -82,13 +82,13 @@ export default function TripListPage() {
             <p style={{ color: "var(--cl-text-muted)" }}>Check that the backend is running and you are signed in.</p>
           </div>
         ) : trips.length === 0 ? (
-          <div className="empty-state" style={{ padding: "var(--sp-4xl) var(--sp-xl)", background: "var(--cl-surface)", borderRadius: "var(--br-2xl)" }}>
-            <div className="empty-state-icon" style={{ background: "var(--cl-bg-subtle)", width: "80px", height: "80px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto var(--sp-lg) auto" }}>
-              <Map size={40} color="var(--cl-text-muted)" />
+          <div className="empty-state" style={{ padding: "var(--sp-2xl) var(--sp-xl)", background: "var(--cl-surface)", borderRadius: "var(--br-2xl)", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--sp-md)" }}>
+            <div className="empty-state-icon" style={{ background: "var(--cl-bg-subtle)", width: "64px", height: "64px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: 0 }}>
+              <Map size={32} color="var(--cl-text-muted)" />
             </div>
-            <div className="empty-state-title" style={{ fontSize: "var(--fs-2xl)" }}>No trips found</div>
-            <p style={{ color: "var(--cl-text-muted)", fontSize: "var(--fs-lg)", maxWidth: "400px", margin: "0 auto var(--sp-xl) auto" }}>{query ? `No results for "${query}"` : "Start planning your first adventure. It only takes a minute to get started."}</p>
-            <Link to={ROUTES.tripNew} className="btn btn-primary btn-lg">Plan your first trip</Link>
+            <div className="empty-state-title" style={{ fontSize: "var(--fs-xl)", margin: 0 }}>No trips found</div>
+            <p style={{ color: "var(--cl-text-muted)", fontSize: "var(--fs-base)", maxWidth: "360px", margin: 0, textAlign: "center" }}>{query ? `No results for "${query}"` : "Start planning your first adventure. It only takes a minute to get started."}</p>
+            <Link to={ROUTES.tripNew} className="btn btn-primary" style={{ marginTop: "var(--sp-sm)" }}>Plan your first trip</Link>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-md)" }}>

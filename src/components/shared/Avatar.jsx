@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { clsx } from "clsx";
 
 /**
@@ -51,6 +51,7 @@ function getGradientIndex(name) {
 
 export function Avatar({
   src,
+  url,
   name,
   size = "md",
   className,
@@ -68,7 +69,13 @@ export function Avatar({
   );
   const dim = SIZE_MAP[size] || SIZE_MAP.md;
 
-  const showImage = src && !imgError;
+  const imageSrc = src || url;
+  const showImage = imageSrc && !imgError;
+
+  useEffect(() => {
+    setImgError(false);
+    setImgLoaded(false);
+  }, [imageSrc]);
 
   return (
     <div
@@ -112,7 +119,7 @@ export function Avatar({
       {/* Image */}
       {showImage && (
         <img
-          src={src}
+          src={imageSrc}
           alt={name || "Avatar"}
           onError={() => setImgError(true)}
           onLoad={() => setImgLoaded(true)}
