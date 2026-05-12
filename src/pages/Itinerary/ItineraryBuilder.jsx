@@ -8,7 +8,7 @@ import { searchCities } from "@/api/cities.api";
 import { generateTripPlan } from "@/api/ai.api";
 import { getApiErrorMessage } from "@/api/client";
 import { QUERY_KEYS, ROUTES } from "@/lib/constants";
-import { formatDate, getCityLabel, getStopCity, usd } from "@/lib/format";
+import { formatDate, getCityLabel, getStopCity, getTripBudget, usd, activityEstimatedInr } from "@/lib/format";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { useMap } from "@/hooks/useMap";
@@ -16,6 +16,7 @@ import { buildAiContext } from "@/lib/aiContext";
 import { useAuthStore } from "@/store/authStore";
 import { updateProfile } from "@/api/auth.api";
 import { MapView } from "@/components/itinerary/MapView";
+import { CityPlaceImage } from "@/components/places/CityPlaceImage";
 import { AiThinkingPanel } from "@/components/ai/AiThinkingPanel";
 import { useToast } from "@/components/shared/toast-context";
 import "@/styles/components/itinerary.css";
@@ -137,7 +138,10 @@ export default function ItineraryBuilderPage() {
           destination,
           startDate: trip?.startDate,
           endDate: trip?.endDate,
-          budgetInr: trip?.budgetCapInr ?? trip?.budgetCapUsd,
+          budgetInr: (() => {
+            const cap = getTripBudget(trip);
+            return cap > 0 ? cap : undefined;
+          })(),
           placesToCover: stopLabels,
           stayPreference: stops.find((stop) => stop.accommodationName)?.accommodationName || undefined,
           transportationPreferences: ["flight", "train", "cab"],
@@ -189,7 +193,8 @@ export default function ItineraryBuilderPage() {
           {!selectedCity && cityResults?.cities?.length > 0 && (
             <div className="card" style={{ padding: "var(--sp-xs)", marginTop: "var(--sp-xs)" }}>
               {cityResults.cities.map((city) => (
-                <button key={city.id} type="button" className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "flex-start" }} onClick={() => setSelectedCity(city)}>
+                <button key={city.id} type="button" className="btn btn-ghost btn-sm" style={{ width: "100%", justifyContent: "flex-start", gap: "var(--sp-sm)" }} onClick={() => setSelectedCity(city)}>
+                  <CityPlaceImage city={city} className="place-thumb" style={{ width: 56, height: 40 }} alt="" />
                   <MapPin size={14} /> {getCityLabel(city)}
                 </button>
               ))}
@@ -240,7 +245,10 @@ export default function ItineraryBuilderPage() {
           <div key={stop.id} className="stop-card">
             <div className="stop-card-header">
               <div className="stop-card-number">{String(index + 1).padStart(2, "0")}</div>
-              <div className="stop-card-title">{getCityLabel(city)}</div>
+              <div className="stop-card-header-visual">
+                {city ? <CityPlaceImage city={city} className="place-thumb place-thumb-lg" alt={getCityLabel(city)} /> : null}
+                <div className="stop-card-title">{getCityLabel(city)}</div>
+              </div>
               <div className="stop-card-actions">
                 <button className="btn btn-ghost btn-icon" onClick={() => deleteMutation.mutate(stop.id)} title="Remove stop" style={{ color: "var(--cl-error)" }}><Trash2 size={16} /></button>
               </div>
@@ -270,7 +278,7 @@ export default function ItineraryBuilderPage() {
           <div style={{ display: "grid", gap: "var(--sp-sm)" }}>
             {(activityResults?.activities ?? []).map((activity) => (
               <button key={activity.id} className="btn btn-secondary btn-sm" onClick={() => assignMutation.mutate({ stopId: activeStop.id, activityId: activity.id })}>
-                + {activity.name} ({usd(activity.estimatedCostInr)})
+                + {activity.name} ({usd(activityEstimatedInr(activity))})
               </button>
             ))}
           </div>

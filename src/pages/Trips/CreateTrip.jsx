@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createTrip } from "@/api/trips.api";
 import { getApiErrorMessage } from "@/api/client";
 import { ROUTES } from "@/lib/constants";
+import { inrToUsd } from "@/lib/currency";
 import "@/styles/components/ui.css";
 import "@/styles/components/create-trip.css";
 import { Rocket, AlertTriangle, X } from "lucide-react";
@@ -42,6 +43,8 @@ export default function CreateTripPage() {
       return setError("Please enter a valid URL (starting with http or https) or leave it empty.");
     }
 
+    const budgetCapUsd =
+      form.budgetCapInr === "" ? undefined : inrToUsd(form.budgetCapInr);
     mutation.mutate({
       title: form.title.trim(),
       description: form.description.trim() || undefined,
@@ -49,7 +52,7 @@ export default function CreateTripPage() {
       startDate: form.startDate,
       endDate: form.endDate,
       tripType: form.tripType,
-      budgetCapInr: form.budgetCapInr === "" ? undefined : Number(form.budgetCapInr),
+      ...(budgetCapUsd != null ? { budgetCapUsd } : {}),
       vibe: form.vibe,
     });
   };

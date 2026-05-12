@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getPublicTrip } from "@/api/public.api";
 import { MapView } from "@/components/itinerary/MapView";
+import { CityPlaceImage } from "@/components/places/CityPlaceImage";
 import { ROUTES } from "@/lib/constants";
 import { formatDate, getCityLabel, getStopCity, getTripBudget, usd } from "@/lib/format";
 import { Banknote, Calendar, Globe, Map, MapPin, Sparkles } from "lucide-react";
@@ -25,7 +26,13 @@ export default function PublicItineraryPage() {
   const { slug } = useParams();
   const { data: trip, isLoading, isError } = useQuery({ queryKey: ["public-trip", slug ?? ""], queryFn: () => getPublicTrip(slug), enabled: Boolean(slug) });
   const stops = useMemo(() => trip?.stops ?? [], [trip?.stops]);
-  const heroImage = trip?.coverPhotoUrl || stops.find((stop) => getStopCity(stop)?.thumbnailUrl)?.city?.thumbnailUrl || "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80";
+  const heroImage =
+    trip?.coverPhotoUrl ||
+    (() => {
+      const s = stops.find((stop) => getStopCity(stop)?.thumbnailUrl);
+      return getStopCity(s)?.thumbnailUrl;
+    })() ||
+    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80";
   const destinationLine = useMemo(() => stops.map((stop) => getCityLabel(getStopCity(stop))).filter(Boolean).join(" · "), [stops]);
 
   useEffect(() => {
@@ -89,11 +96,14 @@ export default function PublicItineraryPage() {
             return (
               <article key={stop.id} className="public-stop">
                 <div className="public-stop-index">{String(index + 1).padStart(2, "0")}</div>
-                <div>
-                  <h3>{getCityLabel(city)}</h3>
-                  <p>{formatDate(stop.arrivalDate)} to {formatDate(stop.departureDate)} {stop.accommodationName ? `· ${stop.accommodationName}` : ""}</p>
-                  {stop.notes && <p>{stop.notes}</p>}
-                  {activities.length > 0 && <div className="public-activity-list">{activities.map((activity) => <span key={activity.id}>{activity.activity?.name || "Activity"}</span>)}</div>}
+                <div className="public-stop-body">
+                  {city ? <CityPlaceImage city={city} className="place-thumb-public" alt={getCityLabel(city)} /> : null}
+                  <div>
+                    <h3>{getCityLabel(city)}</h3>
+                    <p>{formatDate(stop.arrivalDate)} to {formatDate(stop.departureDate)} {stop.accommodationName ? `· ${stop.accommodationName}` : ""}</p>
+                    {stop.notes && <p>{stop.notes}</p>}
+                    {activities.length > 0 && <div className="public-activity-list">{activities.map((activity) => <span key={activity.id}>{activity.activity?.name || "Activity"}</span>)}</div>}
+                  </div>
                 </div>
               </article>
             );

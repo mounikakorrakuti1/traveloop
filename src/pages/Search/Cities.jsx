@@ -2,10 +2,9 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { searchCities } from "@/api/cities.api";
+import { CityPlaceImage } from "@/components/places/CityPlaceImage";
 import { QUERY_KEYS, ROUTES } from "@/lib/constants";
 import { getCityLabel } from "@/lib/format";
-import { SmartImage } from "@/components/shared/SmartImage";
-import { getCityThumbnail } from "@/lib/cityImages";
 import { uniqueDestinations } from "@/lib/dedupe";
 import { useDebounce } from "@/hooks/useDebounce";
 import { SkeletonCard } from "@/components/shared/Skeleton";
@@ -84,11 +83,10 @@ export default function CitiesPage() {
           {visibleCities.map((city) => (
             <Link key={city.id} to={ROUTES.cityDetail(city.id)} className="card card-hover city-card-link" style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0, overflow: "hidden", border: "none", boxShadow: "var(--shadow-sm)" }}>
               <div className="city-card-photo" style={{ height: "16rem", position: "relative" }}>
-                <SmartImage 
-                  src={city.thumbnailUrl} 
-                  fallbackSrc={getCityThumbnail(city)} 
-                  alt={city.name} 
-                  className="city-card-img" 
+                <CityPlaceImage
+                  city={city}
+                  alt={city.name}
+                  className="city-card-img"
                   style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s ease" }}
                 />
                 <div style={{

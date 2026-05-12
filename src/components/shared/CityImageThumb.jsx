@@ -1,34 +1,26 @@
-import { useState } from "react";
-import { Image as ImageIcon } from "lucide-react";
 import { useDestinationImage } from "@/hooks/useDestinationImage";
+import { SmartImage } from "@/components/shared/SmartImage";
+import { getCityThumbnail } from "@/lib/cityImages";
+import { sanitizeRemoteImageUrl } from "@/lib/imageUrl";
 
 export function CityImageThumb({ city, title, className = "" }) {
-  const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
-  const { data, isLoading, isError } = useDestinationImage(city);
-  const showImage = data?.imageUrl && !failed && !isError;
+  const cityObj = typeof city === "object" && city !== null ? city : null;
+  const queryCity = cityObj?.name || (typeof city === "string" ? city : "") || title || "";
+  const { data, isLoading } = useDestinationImage(queryCity.trim().length > 1 ? queryCity : "default");
+  const primary = sanitizeRemoteImageUrl(data?.imageUrl);
+  const fallback = getCityThumbnail(cityObj || { name: queryCity });
+  const alt = title || queryCity || "Destination";
 
   return (
-    <div className={`city-image-thumb ${loaded ? "city-image-thumb-loaded" : ""} ${className}`}>
-      {!loaded && !failed && city !== "default" && <div className="city-image-thumb-skeleton" aria-hidden="true" />}
-      {showImage ? (
-        <img
-          src={data.imageUrl}
-          srcSet={data.smallImageUrl ? `${data.smallImageUrl} 640w, ${data.imageUrl} 1080w` : undefined}
-          sizes="(max-width: 768px) 100vw, 18rem"
-          alt={title}
-          loading="lazy"
-          decoding="async"
-          onLoad={() => setLoaded(true)}
-          onError={() => setFailed(true)}
-        />
-      ) : (
-        !isLoading && (
-          <div className="city-image-thumb-fallback" aria-hidden="true">
-            <ImageIcon size={24} />
-          </div>
-        )
-      )}
+    <div className={`city-image-thumb ${!isLoading ? "city-image-thumb-loaded" : ""} ${className}`}>
+      {isLoading && <div className="city-image-thumb-skeleton" aria-hidden="true" />}
+      <SmartImage
+        src={primary}
+        fallbackSrc={fallback}
+        alt={alt}
+        className="city-image-thumb-img"
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
     </div>
   );
 }

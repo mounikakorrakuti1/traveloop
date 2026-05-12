@@ -243,7 +243,7 @@ export default function UserProfilePage() {
           <div className="profile-stat"><div className="profile-stat-value" style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--cl-accent)", textTransform: "capitalize" }}>{user?.travelerProfile || "solo"}</div><div className="profile-stat-label" style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-on-surface)", fontWeight: "var(--fw-bold)", textTransform: "uppercase", opacity: 0.8 }}>Profile</div></div>
           <div className="profile-stat"><div className="profile-stat-value" style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--cl-accent)" }}>INR</div><div className="profile-stat-label" style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-on-surface)", fontWeight: "var(--fw-bold)", textTransform: "uppercase", opacity: 0.8 }}>Currency</div></div>
         </div>
-      </div>v>
+      </div>
 
       <div className="profile-grid">
         <form className="profile-form-card" onSubmit={save}>

@@ -2,6 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { inrToUsd } from "@/lib/currency";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -46,7 +47,14 @@ export function TripForm({ defaultValues, onSubmit, submitLabel = "Save trip", i
     });
     return /*#__PURE__*/ _jsxs("form", {
         className: "flex max-w-lg flex-col gap-4",
-        onSubmit: handleSubmit(onSubmit),
+        onSubmit: handleSubmit((data)=>{
+            const { budgetCapInr, ...rest } = data;
+            const budgetCapUsd = budgetCapInr != null ? inrToUsd(budgetCapInr) : undefined;
+            onSubmit({
+                ...rest,
+                ...(budgetCapUsd != null ? { budgetCapUsd } : {}),
+            });
+        }),
         noValidate: true,
         children: [
             /*#__PURE__*/ _jsx(Input, {

@@ -5,31 +5,31 @@ import { searchActivities } from "@/api/activities.api";
 import { searchCities } from "@/api/cities.api";
 import { listTrips } from "@/api/trips.api";
 import { QUERY_KEYS, ROUTES } from "@/lib/constants";
-import { getCityLabel, usd } from "@/lib/format";
+import { getCityLabel, usd, activityEstimatedInr } from "@/lib/format";
+import { getTripCardCoverUrl } from "@/lib/tripCover";
+import { SmartImage } from "@/components/shared/SmartImage";
+import { CityPlaceImage } from "@/components/places/CityPlaceImage";
 import { getCityFromTitle } from "@/lib/cityImages";
 import { uniqueDestinations } from "@/lib/dedupe";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useDestinationImage } from "@/hooks/useDestinationImage";
-import { CityImageThumb, UnsplashCredit } from "@/components/shared/CityImageThumb";
+import { CityImageThumb } from "@/components/shared/CityImageThumb";
 import "@/styles/components/search.css";
 import "@/styles/components/ui.css";
-import { Search, Map, MapPin, Calendar } from "lucide-react";
+import { Search, Calendar } from "lucide-react";
 
 const filters = ["All", "Trips", "Destinations", "Activities"];
 
 function ActivityResultCard({ activity }) {
   const city = activity.city?.name || activity.city || getCityFromTitle(activity.name || activity.title);
-  const { data: image } = useDestinationImage(city);
 
   return (
     <div className="search-result-card">
       <div className="search-result-thumb">
-        <CityImageThumb city={city} title={activity.name} />
+        <CityImageThumb city={activity.city || { name: city }} title={activity.name} />
       </div>
       <div className="search-result-body">
         <div className="search-result-name">{activity.name}</div>
-        <div className="search-result-meta">{activity.category} - {usd(activity.estimatedCostInr)}</div>
-        <UnsplashCredit image={image} />
+        <div className="search-result-meta">{activity.category} — {usd(activityEstimatedInr(activity))}</div>
       </div>
     </div>
   );
@@ -68,8 +68,33 @@ export default function SearchPage() {
           <div className="search-results-header"><h2 className="search-results-title">Results for "{query}"</h2><span className="search-results-count">{total} found</span></div>
           {total === 0 ? <div className="empty-state">No matching backend records found.</div> : (
             <div className="search-results-grid">
-              {tripResults.map((trip) => <Link key={trip.id} to={ROUTES.tripDetail(trip.id)} className="search-result-card"><div className="search-result-thumb"><Map size={24} /></div><div className="search-result-body"><div className="search-result-name">{trip.title}</div><div className="search-result-meta"><Calendar size={14} /> {trip.startDate}</div></div></Link>)}
-              {cityResults.map((city) => <Link key={city.id} to={ROUTES.cityDetail(city.id)} className="search-result-card"><div className="search-result-thumb"><MapPin size={24} /></div><div className="search-result-body"><div className="search-result-name">{city.name}</div><div className="search-result-meta">{getCityLabel(city)}</div></div></Link>)}
+              {tripResults.map((trip) => (
+                <Link key={trip.id} to={ROUTES.tripDetail(trip.id)} className="search-result-card">
+                  <div className="search-result-thumb">
+                    <SmartImage
+                      src={trip.coverPhotoUrl}
+                      fallbackSrc={getTripCardCoverUrl(trip)}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  </div>
+                  <div className="search-result-body">
+                    <div className="search-result-name">{trip.title}</div>
+                    <div className="search-result-meta"><Calendar size={14} /> {trip.startDate}</div>
+                  </div>
+                </Link>
+              ))}
+              {cityResults.map((city) => (
+                <Link key={city.id} to={ROUTES.cityDetail(city.id)} className="search-result-card">
+                  <div className="search-result-thumb">
+                    <CityPlaceImage city={city} alt={getCityLabel(city)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                  <div className="search-result-body">
+                    <div className="search-result-name">{city.name}</div>
+                    <div className="search-result-meta">{getCityLabel(city)}</div>
+                  </div>
+                </Link>
+              ))}
               {activityResults.map((activity) => <ActivityResultCard key={activity.id} activity={activity} />)}
             </div>
           )}

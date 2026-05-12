@@ -3,11 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { listTrips } from "@/api/trips.api";
 import { searchCities } from "@/api/cities.api";
 import { getTrendingDestinations } from "@/api/destinations.api";
+import { CityPlaceImage } from "@/components/places/CityPlaceImage";
 import { QUERY_KEYS, ROUTES } from "@/lib/constants";
 import { useAuthStore } from "@/store/authStore";
 import { formatDate, getTripBudget, usd } from "@/lib/format";
 import { getTripCardCoverUrl } from "@/lib/tripCover";
-import { getCityThumbnail } from "@/lib/cityImages";
 import { uniqueDestinations } from "@/lib/dedupe";
 import { SmartImage } from "@/components/shared/SmartImage";
 import { SkeletonCard, SkeletonRow } from "@/components/shared/Skeleton";
@@ -188,7 +188,11 @@ export default function DashboardPage() {
                 {exploreDestinations.map((city) => (
                   <Link key={city.id ?? city.name} to={city.id ? ROUTES.cityDetail(city.id) : ROUTES.search} className="card card-hover dest-tile" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column", border: "1px solid var(--cl-border)", borderRadius: "var(--br-2xl)", transition: "transform 0.3s ease" }}>
                     <div style={{ width: "100%", aspectRatio: "1/1", overflow: "hidden" }}>
-                      <SmartImage src={city.image ?? city.thumbnailUrl} fallbackSrc={getCityThumbnail(city)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <CityPlaceImage
+                        city={city}
+                        alt={city.name || ""}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
                     </div>
                     <div className="dest-tile-name" style={{ padding: "var(--sp-md)", fontWeight: "var(--fw-bold)", fontSize: "var(--fs-sm)", textAlign: "center", background: "var(--cl-surface)", color: "var(--cl-accent)", opacity: 1, display: "block" }}>
                       <div>{city.name}</div>

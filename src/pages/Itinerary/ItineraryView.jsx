@@ -6,6 +6,7 @@ import { QUERY_KEYS, ROUTES } from "@/lib/constants";
 import { formatDate, getCityLabel, getStopCity, usd } from "@/lib/format";
 import { useMap } from "@/hooks/useMap";
 import { MapView } from "@/components/itinerary/MapView";
+import { CityPlaceImage } from "@/components/places/CityPlaceImage";
 import "@/styles/components/itinerary.css";
 import "@/styles/components/ui.css";
 import { MapPin, Calendar } from "lucide-react";
@@ -41,13 +42,25 @@ export default function ItineraryViewPage() {
               <div className="day-label-col"><div className="day-label">Stop {index + 1}<div style={{ fontSize: "var(--fs-xs)", opacity: 0.6, marginTop: "2px" }}>{formatDate(stop.arrivalDate)}</div></div></div>
               <div className="day-activities">
                 <div className="activity-row">
-                  <div>
-                    <div className="activity-name">{getCityLabel(city)}</div>
-                    <div style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-muted)", marginTop: "2px" }}>{formatDate(stop.arrivalDate)} to {formatDate(stop.departureDate)}</div>
-                    {stop.notes && <div style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-muted)", marginTop: "2px" }}>{stop.notes}</div>}
-                    {((stop.activities || stop.stopActivities) || []).map((sa) => <div key={sa.id} style={{ marginTop: "var(--sp-xs)" }}>- {sa.activity?.name || "Activity"} {sa.actualCostInr ? `(${usd(sa.actualCostInr)})` : ""}</div>)}
+                  {city ? <CityPlaceImage city={city} className="place-thumb place-thumb-lg" alt={getCityLabel(city)} /> : null}
+                  <div className="activity-row-text">
+                    <div>
+                      <div className="activity-name">{getCityLabel(city)}</div>
+                      <div style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-muted)", marginTop: "2px" }}>{formatDate(stop.arrivalDate)} to {formatDate(stop.departureDate)}</div>
+                      {stop.notes && <div style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-muted)", marginTop: "2px" }}>{stop.notes}</div>}
+                      {((stop.activities || stop.stopActivities) || []).map((sa) => (
+                        <div key={sa.id} style={{ marginTop: "var(--sp-xs)", display: "flex", alignItems: "center", gap: "var(--sp-xs)" }}>
+                          {sa.activity?.imageUrl ? (
+                            <img src={sa.activity.imageUrl} alt="" className="place-thumb" style={{ width: 48, height: 48 }} loading="lazy" />
+                          ) : null}
+                          <span>
+                            - {sa.activity?.name || "Activity"} {sa.actualCostInr ? `(${usd(sa.actualCostInr)})` : ""}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="activity-cost">{stop.accommodationCostInr ? usd(stop.accommodationCostInr) : ""}</div>
                   </div>
-                  <div className="activity-cost">{stop.accommodationCostInr ? usd(stop.accommodationCostInr) : ""}</div>
                 </div>
               </div>
             </div>
