@@ -8,7 +8,7 @@
    ============================================================ */
 
 /* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Outfit:wght@300;400;500;600;700;800&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 
 /* ── Raw Palette ─────────────────────────────────────────── */
 :root {
@@ -60,7 +60,7 @@
   --cl-info:             #3D405B;
 
   /* ── Typography — Golden Ratio Scale (base 16px × 1.618) ─ */
-  --font-display:        'Outfit', system-ui, sans-serif;
+  --font-display:        'Bungee', cursive;
   --font-body:           'Inter', system-ui, sans-serif;
 
   --fs-2xs:  0.500rem;   /* ~8px  */
@@ -84,7 +84,7 @@
   --lh-body:     1.618;
   --lh-relaxed:  2.0;
 
-  --ls-tight:    -0.04em;
+  --ls-tight:    0.04em;
   --ls-base:     -0.01em;
   --ls-wide:     0.05em;
   --ls-wider:    0.1em;
