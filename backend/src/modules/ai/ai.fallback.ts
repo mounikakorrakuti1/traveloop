@@ -35,15 +35,23 @@ export const fallbackPacking = (_dto: PackingSuggestionDto): PackingList[] => [
 
 export const fallbackBudget = (dto: BudgetEstimateDto): BudgetEstimate => {
   const multiplier = dto.vibe === 'luxury' ? 2.2 : dto.vibe === 'comfort' ? 1.35 : 0.75;
-  const accommodationUsd = Math.round(4500 * multiplier);
-  const foodUsd = Math.round(1600 * multiplier);
-  const activitiesUsd = Math.round(2400 * multiplier);
+  const accommodationInr = Math.round(4500 * multiplier);
+  const foodInr = Math.round(1600 * multiplier);
+  const transportInr = Math.round(1200 * multiplier);
+  const activitiesInr = Math.round(2400 * multiplier);
   return {
     cityId: dto.cityId ?? 'context',
     cityName: dto.cityName,
-    perDayUsd: accommodationUsd + foodUsd + activitiesUsd,
-    accommodationUsd,
-    foodUsd,
-    activitiesUsd
+    currency: 'INR',
+    perDayInr: accommodationInr + foodInr + transportInr + activitiesInr,
+    accommodationInr,
+    foodInr,
+    transportInr,
+    activitiesInr,
+    confidence: 'fallback',
+    notes: [
+      'Estimate uses Traveloop fallback pricing because live AI was unavailable.',
+      'Adjust stay and activity costs after you pick exact hotels and experiences.'
+    ]
   };
 };

@@ -514,10 +514,14 @@ describe('implemented API route contracts', () => {
     mockedAiService.budget.mockResolvedValueOnce({
       cityId: city.id,
       cityName: city.name,
-      perDayUsd: 100,
-      accommodationUsd: 50,
-      foodUsd: 25,
-      activitiesUsd: 25
+      currency: 'INR',
+      perDayInr: 8500,
+      accommodationInr: 4200,
+      foodInr: 1600,
+      transportInr: 900,
+      activitiesInr: 1800,
+      confidence: 'ai',
+      notes: ['Comfort estimate for Jaipur']
     });
     mockedMapsService.tripRoute.mockResolvedValueOnce({
       tripId: trip.id,

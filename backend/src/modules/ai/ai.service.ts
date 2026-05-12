@@ -147,9 +147,20 @@ Return shape: [{"category":"string","items":["string"]}]`;
     const userQuery = `Generate a realistic per-day Indian travel budget estimate for ${dto.cityName}.
 Vibe: ${dto.vibe}. Traveler type: ${dto.tripType ?? 'unknown'}. Days: ${dto.days ?? 'unknown'}.
 Use practical split across stay/food/transport/activities and seasonality.
-Return shape: {"cityId":"${dto.cityId ?? 'context'}","cityName":"${dto.cityName}","perDayUsd":9000,"accommodationUsd":4500,"foodUsd":1800,"activitiesUsd":2700}. The field names are legacy; numeric values must be INR.`;
+Return shape: {"cityId":"${dto.cityId ?? 'context'}","cityName":"${dto.cityName}","currency":"INR","perDayInr":9000,"accommodationInr":4200,"foodInr":1800,"transportInr":1200,"activitiesInr":1800,"confidence":"ai","notes":["short reason"]}.`;
     try {
-      return await this.generateJson<BudgetEstimate>(SYSTEM_PROMPT, contextualMemory, userQuery);
+      const estimate = await this.generateJson<BudgetEstimate>(SYSTEM_PROMPT, contextualMemory, userQuery);
+      return {
+        ...estimate,
+        currency: 'INR',
+        perDayInr: Number(estimate.perDayInr),
+        accommodationInr: Number(estimate.accommodationInr),
+        foodInr: Number(estimate.foodInr),
+        transportInr: Number(estimate.transportInr),
+        activitiesInr: Number(estimate.activitiesInr),
+        confidence: 'ai',
+        notes: Array.isArray(estimate.notes) ? estimate.notes.slice(0, 4) : []
+      };
     } catch (error) {
       logger.warn('Gemini budget fallback used', { error: error instanceof Error ? error.message : error });
       return fallbackBudget(dto);

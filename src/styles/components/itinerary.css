@@ -360,3 +360,41 @@
     stroke-dashoffset: 0;
   }
 }
+.ai-result-card {
+  border-color: rgba(129, 178, 154, 0.35);
+  background: linear-gradient(135deg, rgba(129, 178, 154, 0.08), rgba(224, 122, 95, 0.05)), var(--cl-bg);
+}
+
+.ai-idea-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--sp-md);
+}
+
+.ai-idea-item {
+  border: 1px solid var(--cl-border);
+  border-radius: var(--br-lg);
+  background: rgba(255, 255, 255, 0.72);
+  padding: var(--sp-md);
+}
+
+.ai-idea-kicker {
+  color: var(--cl-accent);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  margin-bottom: var(--sp-xs);
+}
+
+.ai-idea-item strong {
+  display: block;
+  color: var(--cl-text);
+  margin-bottom: var(--sp-xs);
+}
+
+.ai-idea-item p {
+  margin: 0;
+  color: var(--cl-text-muted);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-body);
+}

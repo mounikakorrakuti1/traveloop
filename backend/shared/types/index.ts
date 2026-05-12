@@ -200,8 +200,12 @@ export interface PackingList {
 export interface BudgetEstimate {
   cityId: string;
   cityName: string;
-  perDayUsd: number;
-  accommodationUsd: number;
-  foodUsd: number;
-  activitiesUsd: number;
+  currency: 'INR';
+  perDayInr: number;
+  accommodationInr: number;
+  foodInr: number;
+  transportInr: number;
+  activitiesInr: number;
+  confidence: 'fallback' | 'ai';
+  notes: string[];
 }

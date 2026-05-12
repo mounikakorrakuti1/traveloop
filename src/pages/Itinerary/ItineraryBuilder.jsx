@@ -16,6 +16,7 @@ import { buildAiContext } from "@/lib/aiContext";
 import { useAuthStore } from "@/store/authStore";
 import { updateProfile } from "@/api/auth.api";
 import { MapView } from "@/components/itinerary/MapView";
+import { AiThinkingPanel } from "@/components/ai/AiThinkingPanel";
 import { useToast } from "@/components/shared/toast-context";
 import "@/styles/components/itinerary.css";
 import "@/styles/components/ui.css";
@@ -144,6 +145,13 @@ export default function ItineraryBuilderPage() {
 
       <MapView stops={stops} routeData={routeData} height="320px" />
 
+      {aiMutation.isPending && (
+        <AiThinkingPanel
+          title={isLocating ? "Reading nearby context" : "Finding itinerary ideas"}
+          destination={trip?.title || "this trip"}
+        />
+      )}
+
       <form className="card" onSubmit={addStop} style={{ display: "grid", gap: "var(--sp-md)" }}>
         <div className="input-wrap">
           <label className="input-label">City</label>
@@ -168,14 +176,18 @@ export default function ItineraryBuilderPage() {
         <button className="btn btn-primary" disabled={addStopMutation.isPending}><Plus size={16} /> Add Stop</button>
       </form>
 
-      {aiMutation.data?.stops?.length > 0 && (
-        <div className="card">
+      {!aiMutation.isPending && aiMutation.data?.stops?.length > 0 && (
+        <div className="card ai-result-card">
           <h3 className="note-card-title">AI itinerary ideas</h3>
-          {aiMutation.data.stops.map((stop, index) => (
-            <p key={`${stop.city}-${index}`} style={{ color: "var(--cl-text-muted)" }}>
-              <strong>{stop.city}</strong>: {stop.activities?.map((a) => a.name).join(", ")}
-            </p>
-          ))}
+          <div className="ai-idea-grid">
+            {aiMutation.data.stops.map((stop, index) => (
+              <div key={`${stop.city}-${index}`} className="ai-idea-item">
+                <div className="ai-idea-kicker">{stop.days} day{stop.days === 1 ? "" : "s"}</div>
+                <strong>{stop.city}, {stop.country}</strong>
+                <p>{stop.activities?.map((a) => a.name).join(", ")}</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
