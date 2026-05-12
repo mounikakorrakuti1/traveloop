@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { NavLink, Link, useNavigate } from "react-router-dom";
-import { Bell, Plane } from "lucide-react";
+import { Bell, Plane, Home, Map, Building2, Search, Globe, User, Settings, LogOut, Sun, Moon, HelpCircle } from "lucide-react";
 import { ROUTES } from "@/lib/constants";
 import { getUserAvatarUrl } from "@/lib/avatar";
 import { useAuthStore } from "@/store/authStore";
@@ -11,11 +11,11 @@ import { Avatar } from "@/components/shared/Avatar";
 import "@/styles/components/navbar.css";
 
 const navLinks = [
-  { label: "Dashboard", to: ROUTES.home,      icon: "🏠" },
-  { label: "My Trips",  to: ROUTES.trips,     icon: "🗺️" },
-  { label: "Cities",    to: ROUTES.cities,    icon: "🏙️" },
-  { label: "Search",    to: ROUTES.search,    icon: "🔍" },
-  { label: "Community", to: ROUTES.community, icon: "🌍" },
+  { label: "Dashboard", to: ROUTES.home,      icon: <Home size={18} /> },
+  { label: "My Trips",  to: ROUTES.trips,     icon: <Map size={18} /> },
+  { label: "Cities",    to: ROUTES.cities,    icon: <Building2 size={18} /> },
+  { label: "Search",    to: ROUTES.search,    icon: <Search size={18} /> },
+  { label: "Community", to: ROUTES.community, icon: <Globe size={18} /> },
 ];
 
 export function Navbar() {
@@ -78,7 +78,7 @@ export function Navbar() {
             aria-label="Toggle theme"
             title={theme === "dark" ? "Switch to light" : "Switch to dark"}
           >
-          {theme === "dark" ? "☀️" : "🌙"}
+          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
         {/* Notifications */}
@@ -89,7 +89,7 @@ export function Navbar() {
             aria-label="Start website tour"
             onClick={startGuidedTour}
           >
-            ?
+            <HelpCircle size={18} color="rgba(244,241,222,0.7)" />
           </button>
         )}
 
@@ -135,7 +135,7 @@ export function Navbar() {
                     onClick={() => setMenuOpen(false)}
                     role="menuitem"
                   >
-                    👤 Profile
+                    <User size={16} /> Profile
                   </Link>
                   <Link
                     to={ROUTES.trips}
@@ -143,7 +143,7 @@ export function Navbar() {
                     onClick={() => setMenuOpen(false)}
                     role="menuitem"
                   >
-                    🗺️ My Trips
+                    <Map size={16} /> My Trips
                   </Link>
                   {user.isAdmin && (
                     <Link
@@ -152,7 +152,7 @@ export function Navbar() {
                       onClick={() => setMenuOpen(false)}
                       role="menuitem"
                     >
-                      ⚙️ Admin Panel
+                      <Settings size={16} /> Admin Panel
                     </Link>
                   )}
                   <div className="dropdown-divider" />
@@ -161,7 +161,7 @@ export function Navbar() {
                     onClick={handleLogout}
                     role="menuitem"
                   >
-                    🚪 Sign Out
+                    <LogOut size={16} /> Sign Out
                   </button>
                 </div>
               )}
