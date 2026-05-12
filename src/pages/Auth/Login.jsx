@@ -42,8 +42,7 @@ export default function LoginPage() {
       <div className="auth-panel">
         <div className="auth-panel-brand">
           <Link to={ROUTES.landing} style={{ display: "flex", alignItems: "center", gap: "var(--sp-sm)", textDecoration: "none" }}>
-            <div className="auth-panel-logo-mark"><Plane size={24} strokeWidth={2.5} /></div>
-            <span className="auth-panel-brand-name">Travel-Loop</span>
+            <span className="auth-panel-brand-name">Travel<Plane size={32} style={{ display: "inline-block", marginInline: "4px", verticalAlign: "middle", color: "var(--cl-accent)" }} />Loop</span>
           </Link>
         </div>
 

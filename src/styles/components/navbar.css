@@ -62,7 +62,8 @@
   font-family: var(--font-body);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
-  color: rgba(244, 241, 222, 0.7);
+  color: var(--cl-text-on-surface);
+  opacity: 0.75;
   padding: var(--sp-xs) var(--sp-md);
   border-radius: var(--br-md);
   border: 1px solid transparent;

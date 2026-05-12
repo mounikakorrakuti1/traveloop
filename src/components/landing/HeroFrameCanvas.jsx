@@ -108,8 +108,44 @@ export default function HeroFrameCanvas() {
   }, []);
 
   /* ────────────── RAF render loop ──────────────────────────── */
+  const lastScrollTime = useRef(Date.now());
+  const autoPlayPhase  = useRef("forward"); // "forward" | "pauseEnd" | "rewind" | "pauseStart"
+  const pauseStartTime = useRef(0);
+
   const renderLoop = useCallback(() => {
     const s = stateRef.current;
+    const now = Date.now();
+
+    // Auto-play logic: If idle for > 3s
+    if (now - lastScrollTime.current > 3000) {
+      if (autoPlayPhase.current === "forward") {
+        s.targetFrame += 0.25; // Slow forward
+        if (s.targetFrame >= TOTAL_FRAMES - 1) {
+          s.targetFrame = TOTAL_FRAMES - 1;
+          autoPlayPhase.current = "pauseEnd";
+          pauseStartTime.current = now;
+        }
+      } else if (autoPlayPhase.current === "pauseEnd") {
+        if (now - pauseStartTime.current > 1500) { // 1.5s pause at end
+          autoPlayPhase.current = "rewind";
+        }
+      } else if (autoPlayPhase.current === "rewind") {
+        s.targetFrame -= 1.5; // Fast rewind
+        if (s.targetFrame <= 0) {
+          s.targetFrame = 0;
+          autoPlayPhase.current = "pauseStart";
+          pauseStartTime.current = now;
+        }
+      } else if (autoPlayPhase.current === "pauseStart") {
+        if (now - pauseStartTime.current > 2500) { // 2.5s pause at start
+          autoPlayPhase.current = "forward";
+        }
+      }
+    } else {
+      // If user is scrolling, keep it in "forward" mode for when they stop
+      autoPlayPhase.current = "forward";
+    }
+
     // Smooth LERP toward target frame
     const delta = s.targetFrame - s.currentFrame;
     if (Math.abs(delta) > 0.01) {
@@ -121,6 +157,8 @@ export default function HeroFrameCanvas() {
 
   /* ────────────── Scroll handler ───────────────────────────── */
   const handleScroll = useCallback(() => {
+    lastScrollTime.current = Date.now();
+
     // Find the scroll-track container walking up the DOM from the canvas
     const canvas = canvasRef.current;
     if (!canvas) return;

@@ -56,8 +56,7 @@ export default function LandingPage() {
         {/* Navbar — dark background */}
         <div className="landing-navbar landing-navbar-dark">
           <Link to={ROUTES.landing} className="landing-nav-logo">
-            <div className="landing-logo-mark"><Plane size={20} strokeWidth={2.5} /></div>
-            <span className="landing-logo-text">Travel-Loop</span>
+            <span className="landing-logo-text">Travel<Plane size={28} style={{ display: "inline-block", marginInline: "4px", verticalAlign: "middle", color: "var(--cl-accent)" }} />Loop</span>
           </Link>
 
           <div className="landing-nav-links">
@@ -118,7 +117,7 @@ export default function LandingPage() {
               Your complete travel planning toolkit
             </h2>
             <p className="landing-section-desc">
-              From first idea to final memory — Travel-Loop covers every step of your journey.
+              From first idea to final memory — Travel<Plane size={14} style={{ display: "inline-block", marginInline: "1px", verticalAlign: "middle" }} />Loop covers every step of your journey.
             </p>
           </div>
 
@@ -224,7 +223,7 @@ export default function LandingPage() {
               Ready to plan your next adventure?
             </h2>
             <p className="cta-desc">
-              Join thousands of travellers who plan smarter with Travel-Loop.
+              Join thousands of travellers who plan smarter with Travel<Plane size={14} style={{ display: "inline-block", marginInline: "1px", verticalAlign: "middle" }} />Loop.
               Free forever for personal use.
             </p>
             <div className="cta-actions">
@@ -261,8 +260,7 @@ export default function LandingPage() {
         <div className="footer-inner">
           <div>
             <Link to={ROUTES.landing} className="landing-nav-logo" style={{ marginBottom: "var(--sp-md)", textDecoration: "none" }}>
-              <div className="landing-logo-mark"><Plane size={20} strokeWidth={2.5} /></div>
-              <span className="landing-logo-text">Travel-Loop</span>
+              <span className="landing-logo-text">Travel<Plane size={28} style={{ display: "inline-block", marginInline: "4px", verticalAlign: "middle", color: "var(--cl-accent)" }} />Loop</span>
             </Link>
             <p className="footer-brand-desc">
               The all-in-one travel planning platform for modern explorers. Plan, track, and share your adventures.

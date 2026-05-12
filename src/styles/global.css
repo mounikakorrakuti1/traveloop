@@ -8,7 +8,7 @@
    ============================================================ */
 
 /* Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Outfit:wght@300;400;500;600;700;800&family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 
 /* ── Raw Palette ─────────────────────────────────────────── */
 :root {
@@ -60,7 +60,7 @@
   --cl-info:             #3D405B;
 
   /* ── Typography — Golden Ratio Scale (base 16px × 1.618) ─ */
-  --font-display:        'Outfit', system-ui, sans-serif;
+  --font-display:        'Bungee', cursive;
   --font-body:           'Inter', system-ui, sans-serif;
 
   --fs-2xs:  0.500rem;   /* ~8px  */
@@ -84,7 +84,7 @@
   --lh-body:     1.618;
   --lh-relaxed:  2.0;
 
-  --ls-tight:    -0.04em;
+  --ls-tight:    0.04em;
   --ls-base:     -0.01em;
   --ls-wide:     0.05em;
   --ls-wider:    0.1em;
@@ -146,34 +146,63 @@
   --focus-ring: 0 0 0 3px rgba(224, 122, 95, 0.4);
 }
 
-/* ── Dark Mode ───────────────────────────────────────────── */
+/* ── Dark Mode (Midnight Orange Palette) ──────────────────── */
 [data-theme="dark"] {
-  --cl-bg:              #1A1C2E;
-  --cl-bg-alt:          #21243A;
-  --cl-bg-subtle:       #272A40;
+  --cl-bg:              #424B54;
+  --cl-bg-alt:          #4D5761;
+  --cl-bg-subtle:       #58636E;
 
-  --cl-surface:         #2A2D47;
-  --cl-surface-2:       #343760;
-  --cl-surface-elevated:#3F4270;
+  --cl-surface:         #93A8AC;
+  --cl-surface-2:       #A1B4B8;
+  --cl-surface-elevated:#B0C0C3;
 
-  --cl-accent:          #E07A5F;
-  --cl-accent-hover:    #F08868;
-  --cl-accent-light:    rgba(224, 122, 95, 0.2);
+  --cl-accent:          #FF4E00;
+  --cl-accent-hover:    #E64600;
+  --cl-accent-light:    rgba(255, 78, 0, 0.2);
 
-  --cl-text:            #F4F1DE;
-  --cl-text-on-surface: #F4F1DE;
-  --cl-text-muted:      #81B29A;
-  --cl-text-subtle:     #6B8A7A;
+  --cl-text:            #FFFFFF;
+  --cl-text-on-surface: #424B54; /* Dark text on the light-grey surface */
+  --cl-text-muted:      #B0C0C3;
+  --cl-text-subtle:     #93A8AC;
 
-  --cl-border:          rgba(244, 241, 222, 0.1);
-  --cl-border-strong:   rgba(244, 241, 222, 0.22);
-  --cl-border-surface:  rgba(244, 241, 222, 0.12);
+  --cl-border:          rgba(255, 255, 255, 0.1);
+  --cl-border-strong:   rgba(255, 255, 255, 0.2);
+  --cl-border-surface:  rgba(66, 75, 84, 0.15);
 
   --shadow-sm:   0 1px 6px rgba(0, 0, 0, 0.3);
   --shadow-md:   0 4px 16px rgba(0, 0, 0, 0.35);
-  --shadow-lg:   0 8px 32px rgba(0, 0, 0, 0.4);
-  --shadow-xl:   0 16px 48px rgba(0, 0, 0, 0.5);
+  --shadow-lg:   0 12px 32px rgba(0, 0, 0, 0.4);
+  --shadow-xl:   0 20px 48px rgba(0, 0, 0, 0.5);
 }
+
+/* ── Vibrant Mode (Mint & Royal Palette) ───────────────────── */
+/* [data-theme="vibrant"] {
+  --cl-bg:              #F5FFF4;
+  --cl-bg-alt:          #EDF7EC;
+  --cl-bg-subtle:       #E5F0E4;
+
+  --cl-surface:         #474150;
+  --cl-surface-2:       #554E60;
+  --cl-surface-elevated:#625A70;
+
+  --cl-accent:          #FFBB00;
+  --cl-accent-hover:    #E6A800;
+  --cl-accent-light:    rgba(255, 187, 0, 0.15);
+
+  --cl-text:            #474150;
+  --cl-text-on-surface: #F5FFF4;
+  --cl-text-muted:      #6E6A7A;
+  --cl-text-subtle:     #9C99B8;
+
+  --cl-border:          rgba(71, 65, 80, 0.15);
+  --cl-border-strong:   rgba(71, 65, 80, 0.25);
+  --cl-border-surface:  rgba(245, 255, 244, 0.15);
+
+  --shadow-sm:   0 1px 4px rgba(71, 65, 80, 0.08);
+  --shadow-md:   0 4px 16px rgba(71, 65, 80, 0.12);
+  --shadow-lg:   0 12px 32px rgba(71, 65, 80, 0.15);
+  --shadow-xl:   0 20px 48px rgba(71, 65, 80, 0.2);
+} */
 
 /* ── Base Reset & Globals ────────────────────────────────── */
 *, *::before, *::after {
