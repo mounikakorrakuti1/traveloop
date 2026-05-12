@@ -220,24 +220,30 @@ export default function UserProfilePage() {
 
   return (
     <div className="profile-root" style={{ maxWidth: "1200px", margin: "0 auto", paddingBottom: "var(--sp-4xl)" }}>
-      <div className="profile-header-card" style={{ background: "var(--cl-surface)", borderRadius: "var(--br-2xl)", border: "1px solid var(--cl-border)", padding: "var(--sp-2xl)", marginBottom: "var(--sp-2xl)", display: "flex", gap: "var(--sp-2xl)", alignItems: "center", flexWrap: "wrap", boxShadow: "var(--shadow-sm)" }}>
-        <div className="profile-avatar-wrap" style={{ position: "relative" }}>
-          <Avatar name={user?.name || "Traveller"} url={avatarUrl} size="lg" />
-          <label className="profile-avatar-edit" title="Upload profile photo" style={{ position: "absolute", bottom: 0, right: 0, background: "var(--cl-accent)", color: "white", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", border: "2px solid var(--cl-surface)", boxShadow: "var(--shadow-sm)", transition: "transform var(--tr-fast)" }}>
-            <Camera size={16} />
-            <input hidden type="file" disabled={photoMutation.isPending} accept="image/png,image/jpeg,image/webp" onChange={(event) => event.target.files?.[0] && photoMutation.mutate(event.target.files[0])} />
-          </label>
-        </div>
-        <div className="profile-header-info" style={{ flex: 1, display: "flex", flexDirection: "column", gap: "var(--sp-xs)" }}>
-          <h1 className="profile-user-name" style={{ fontSize: "var(--fs-2xl)", margin: 0, fontWeight: "var(--fw-bold)" }}>{user?.name || "Traveller"}</h1>
-          <div className="profile-user-email" style={{ color: "var(--cl-text-muted)", fontSize: "var(--fs-md)" }}>{user?.email || "No email"} · Gemini: {maskGeminiKey(gemini.apiKey)} {photoMutation.isPending ? "· Uploading photo..." : ""}</div>
-          <div className="profile-stats-row" style={{ display: "flex", gap: "var(--sp-lg)", marginTop: "var(--sp-md)", paddingTop: "var(--sp-md)", borderTop: "1px solid var(--cl-bg-subtle)" }}>
-            <div className="profile-stat"><div className="profile-stat-value" style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)" }}>{data?.meta?.total ?? trips.length}</div><div className="profile-stat-label" style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-muted)", textTransform: "uppercase" }}>Trips</div></div>
-            <div className="profile-stat"><div className="profile-stat-value" style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", textTransform: "capitalize" }}>{user?.travelerProfile || "solo"}</div><div className="profile-stat-label" style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-muted)", textTransform: "uppercase" }}>Profile</div></div>
-            <div className="profile-stat"><div className="profile-stat-value" style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)" }}>INR</div><div className="profile-stat-label" style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-muted)", textTransform: "uppercase" }}>Currency</div></div>
+      <div className="profile-header-card" style={{ background: "var(--cl-surface)", borderRadius: "var(--br-2xl)", border: "1px solid var(--cl-border)", padding: "var(--sp-2xl)", marginBottom: "var(--sp-2xl)", display: "flex", flexDirection: "column", gap: "var(--sp-xl)", boxShadow: "var(--shadow-sm)" }}>
+        {/* Top row: Avatar + Basic Info */}
+        <div style={{ display: "flex", gap: "var(--sp-2xl)", alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div className="profile-avatar-wrap" style={{ position: "relative", marginTop: "var(--sp-md)" }}>
+            <Avatar name={user?.name || "Traveller"} url={avatarUrl} size="xl" />
+            <label className="profile-avatar-edit" title="Upload profile photo" style={{ position: "absolute", bottom: "4px", right: "4px", background: "var(--cl-accent)", color: "white", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", border: "2px solid var(--cl-surface)", boxShadow: "var(--shadow-sm)", transition: "transform var(--tr-fast)", zIndex: 10 }}>
+              <Camera size={16} />
+              <input hidden type="file" disabled={photoMutation.isPending} accept="image/png,image/jpeg,image/webp" onChange={(event) => event.target.files?.[0] && photoMutation.mutate(event.target.files[0])} />
+            </label>
+          </div>
+          
+          <div className="profile-header-info" style={{ flex: 1, display: "flex", flexDirection: "column", gap: "var(--sp-xs)" }}>
+            <h1 className="profile-user-name" style={{ fontSize: "var(--fs-2xl)", margin: 0, fontWeight: "var(--fw-bold)" }}>{user?.name || "Traveller"}</h1>
+            <div className="profile-user-email" style={{ color: "var(--cl-text-muted)", fontSize: "var(--fs-md)" }}>{user?.email || "No email"} · Gemini: {maskGeminiKey(gemini.apiKey)} {photoMutation.isPending ? "· Uploading photo..." : ""}</div>
           </div>
         </div>
-      </div>
+
+        {/* Bottom row: Stats */}
+        <div className="profile-stats-row" style={{ display: "flex", gap: "var(--sp-3xl)", marginTop: "var(--sp-md)", paddingTop: "var(--sp-lg)", borderTop: "1px solid var(--cl-bg-subtle)" }}>
+          <div className="profile-stat"><div className="profile-stat-value" style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--cl-accent)" }}>{data?.meta?.total ?? trips.length}</div><div className="profile-stat-label" style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-on-surface)", fontWeight: "var(--fw-bold)", textTransform: "uppercase", opacity: 0.8 }}>Trips</div></div>
+          <div className="profile-stat"><div className="profile-stat-value" style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--cl-accent)", textTransform: "capitalize" }}>{user?.travelerProfile || "solo"}</div><div className="profile-stat-label" style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-on-surface)", fontWeight: "var(--fw-bold)", textTransform: "uppercase", opacity: 0.8 }}>Profile</div></div>
+          <div className="profile-stat"><div className="profile-stat-value" style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--cl-accent)" }}>INR</div><div className="profile-stat-label" style={{ fontSize: "var(--fs-xs)", color: "var(--cl-text-on-surface)", fontWeight: "var(--fw-bold)", textTransform: "uppercase", opacity: 0.8 }}>Currency</div></div>
+        </div>
+      </div>v>
 
       <div className="profile-grid">
         <form className="profile-form-card" onSubmit={save}>

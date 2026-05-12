@@ -83,7 +83,7 @@ export function Avatar({
       style={{
         width: dim.size,
         height: dim.size,
-        borderRadius: "50%",
+        borderRadius: "20%",
         overflow: "hidden",
         position: "relative",
         flexShrink: 0,
