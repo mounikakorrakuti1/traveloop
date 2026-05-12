@@ -345,6 +345,10 @@ const AI_SAMPLE = {
             data: AI_SAMPLE,
             meta: null
         })),
+    http.post("*/api/v1/ai/trip-plan", async ()=>HttpResponse.json({
+            data: AI_SAMPLE,
+            meta: null
+        })),
     http.get("*/api/v1/public/trips/:slug", ({ params })=>{
         const slug = params.slug;
         if (slug !== MOCK_TRIP.publicSlug) {

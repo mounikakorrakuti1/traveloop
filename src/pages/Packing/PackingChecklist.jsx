@@ -99,11 +99,9 @@ export default function PackingChecklistPage() {
   };
 
   return (
-    <div className="packing-root" style={{ maxWidth: "1000px", margin: "0 auto", paddingBottom: "var(--sp-4xl)" }}>
-      
-      {/* ── Header ────────────────────────────────────── */}
-      <div style={{ marginBottom: "var(--sp-2xl)", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "var(--sp-lg)" }}>
-        <div>
+    <div className="packing-root">
+      <header className="packing-page-header">
+        <div className="packing-page-header-main">
           <Link to={ROUTES.tripDetail(id)} style={{ display: "inline-flex", alignItems: "center", gap: "var(--sp-xs)", color: "var(--cl-text-muted)", textDecoration: "none", fontSize: "var(--fs-sm)", fontWeight: "var(--fw-medium)", marginBottom: "var(--sp-md)", transition: "color var(--tr-fast)" }} className="hover-accent">
             <ArrowLeft size={16} /> Back to Trip Overview
           </Link>
@@ -113,18 +111,18 @@ export default function PackingChecklistPage() {
           </div>
           <p style={{ color: "var(--cl-text-muted)", fontSize: "var(--fs-lg)", margin: 0 }}>Smart packing list for {trip?.title || "your upcoming trip"}.</p>
         </div>
-        
-        <button className="btn" style={{ background: "linear-gradient(135deg, var(--cl-accent) 0%, #D86B50 100%)", color: "white", border: "none" }} disabled={!trip || aiMutation.isPending || isLocating} onClick={() => aiMutation.mutate()}>
-          <Sparkles size={16} /> Auto-generate List
-        </button>
-      </div>
+        <div className="packing-page-header-actions">
+          <button className="btn" style={{ background: "linear-gradient(135deg, var(--cl-accent) 0%, #D86B50 100%)", color: "white", border: "none" }} disabled={!trip || aiMutation.isPending || isLocating} onClick={() => aiMutation.mutate()}>
+            <Sparkles size={16} /> Auto-generate List
+          </button>
+        </div>
+      </header>
 
-      {/* ── Progress Widget ───────────────────────────── */}
       <div className="card" style={{ padding: "var(--sp-xl)", marginBottom: "var(--sp-2xl)", border: isComplete ? "1px solid var(--cl-teal)" : "1px solid var(--cl-border)", background: isComplete ? "rgba(42, 157, 143, 0.05)" : "var(--cl-surface)", position: "relative", overflow: "hidden" }}>
         {isComplete && <div style={{ position: "absolute", right: "-20px", top: "-20px", opacity: 0.1, color: "var(--cl-teal)", transform: "rotate(15deg)" }}><PartyPopper size={150} /></div>}
         
         <div style={{ position: "relative", zIndex: 1 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "var(--sp-md)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "var(--sp-md)", marginBottom: "var(--sp-md)", flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: "var(--fs-xs)", fontWeight: "var(--fw-bold)", color: "var(--cl-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px", display: "flex", alignItems: "center", gap: "4px" }}>
                 <CheckCircle2 size={14} /> Progress
@@ -153,12 +151,12 @@ export default function PackingChecklistPage() {
       </div>
 
       {aiMutation.isPending && (
-        <div style={{ animation: "fade-in 0.3s ease-out" }}>
+        <div style={{ animation: "fade-in 0.3s ease-out", marginBottom: "var(--sp-2xl)" }}>
           <AiThinkingPanel title="Curating a personalized packing list" destination={trip?.title || "this trip"} />
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "var(--sp-3xl)", alignItems: "start" }}>
+      <div className="packing-two-col">
         
         {/* ── Checklist Container ───────────────────────── */}
         <div>
@@ -203,7 +201,13 @@ export default function PackingChecklistPage() {
                             {item.aiSuggested && <Sparkles size={12} color="var(--cl-warm)" title="AI Suggested" />}
                           </div>
                           
-                          <button className="btn btn-ghost btn-icon" style={{ width: "32px", height: "32px", color: "var(--cl-text-muted)", opacity: 0.5, ':hover': { opacity: 1, color: "var(--cl-error)" } }} onClick={() => deleteMutation.mutate(item.id)} title="Remove item">
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-icon packing-delete-btn"
+                            style={{ width: "32px", height: "32px", color: "var(--cl-text-muted)", opacity: 0.65 }}
+                            onClick={() => deleteMutation.mutate(item.id)}
+                            title="Remove item"
+                          >
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -217,8 +221,8 @@ export default function PackingChecklistPage() {
         </div>
 
         {/* ── Add Item Form Sidebar ─────────────────────── */}
-        <div style={{ position: "sticky", top: "var(--sp-2xl)" }}>
-          <form className="card" onSubmit={addItem} style={{ display: "flex", flexDirection: "column", gap: "var(--sp-md)", background: "var(--cl-surface)", border: "1px solid var(--cl-border)", boxShadow: "var(--shadow-sm)" }}>
+        <div className="packing-sidebar-col">
+          <form className="card" onSubmit={addItem} style={{ display: "flex", flexDirection: "column", gap: "var(--sp-md)", background: "var(--cl-surface)", border: "1px solid var(--cl-border)", boxShadow: "var(--shadow-sm)", padding: "var(--sp-lg)" }}>
             <h3 style={{ fontSize: "var(--fs-lg)", margin: "0 0 var(--sp-xs) 0" }}>Add Custom Item</h3>
             
             <div className="input-wrap">

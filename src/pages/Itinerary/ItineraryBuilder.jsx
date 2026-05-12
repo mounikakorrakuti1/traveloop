@@ -1,11 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTrip } from "@/api/trips.api";
 import { createStop, deleteStop, listStops } from "@/api/stops.api";
 import { searchActivities, assignActivityToStop, removeActivityFromStop } from "@/api/activities.api";
 import { searchCities } from "@/api/cities.api";
-import { generateTripPlan } from "@/api/ai.api";
+import { generateTripPlanWithFallback, normalizeGeneratedItinerary, sanitizeAiTripFields } from "@/api/ai.api";
 import { getApiErrorMessage } from "@/api/client";
 import { QUERY_KEYS, ROUTES } from "@/lib/constants";
 import { formatDate, getCityLabel, getStopCity, getTripBudget, usd, activityEstimatedInr } from "@/lib/format";
@@ -68,6 +68,69 @@ export default function ItineraryBuilderPage() {
     enabled: Boolean(activeCity?.id),
   });
 
+  const aiMutation = useMutation({
+    mutationFn: async () => {
+      const coords = await requestLocation();
+      if (!coords) {
+        showToast("Location access denied. AI will generate without nearby recommendations.", "info");
+      } else {
+        await updateProfile({
+          travelPreferences: {
+            ...(user?.travelPreferences || {}),
+            currentLocation: coords,
+            locationCapturedAt: new Date().toISOString(),
+          },
+        }).catch(() => {});
+      }
+      const { vibe, tripType } = sanitizeAiTripFields(trip);
+      const destination = extractDestination(trip, stops);
+      const stopLabels = stops.map((stop) => getCityLabel(getStopCity(stop))).filter(Boolean);
+      const days = daysBetweenInclusive(trip?.startDate, trip?.endDate, Math.max(1, stops.length || 3));
+      const interests = [vibe, tripType, ...stopLabels].filter(Boolean);
+      const raw = await generateTripPlanWithFallback({
+        prompt: `${trip?.title || "Trip"}: ${stopLabels.join(" -> ") || destination}`,
+        days,
+        vibe,
+        tripType,
+        preferences: {
+          source: coords ? "current location" : undefined,
+          destination,
+          startDate: trip?.startDate,
+          endDate: trip?.endDate,
+          budgetInr: (() => {
+            const cap = getTripBudget(trip);
+            return cap > 0 ? cap : undefined;
+          })(),
+          placesToCover: stopLabels,
+          stayPreference: stops.find((stop) => stop.accommodationName)?.accommodationName || undefined,
+          transportationPreferences: ["flight", "train", "cab"],
+          foodPreference: user?.travelPreferences?.foodPreference,
+        },
+        userContext: buildAiContext(user, {
+          currentLocation: coords || undefined,
+          interests,
+          previousTrips: stops.map((stop) => getCityLabel(getStopCity(stop))).filter(Boolean),
+          groupSize: tripType === "group" ? 4 : 1,
+          foodPreference: user?.travelPreferences?.foodPreference,
+        }),
+      });
+      return normalizeGeneratedItinerary(raw);
+    },
+    onSuccess: (data) => {
+      const hasDetail = (data.stops?.length ?? 0) > 0;
+      const hasSummary = Boolean(data.summary || data.routeStrategy || data.totalEstimatedCostInr);
+      if (hasDetail || hasSummary) {
+        showToast(hasDetail ? "AI itinerary ideas are ready." : "AI returned a high-level plan; details may be limited.", "success");
+      }
+    },
+    onError: (err) => showToast(getApiErrorMessage(err), "error"),
+  });
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- reset cached AI ideas only when navigating to another trip
+  useEffect(() => {
+    aiMutation.reset();
+  }, [id]);
+
   const invalidateStops = () => queryClient.invalidateQueries({ queryKey: QUERY_KEYS.stops(id ?? "") });
   const addStopMutation = useMutation({
     mutationFn: () => createStop(id, {
@@ -110,54 +173,43 @@ export default function ItineraryBuilderPage() {
     onError: (err) => showToast(getApiErrorMessage(err), "error"),
   });
 
-  const aiMutation = useMutation({
-    mutationFn: async () => {
-      const coords = await requestLocation();
-      if (!coords) {
-        showToast("Location access denied. AI will generate without nearby recommendations.", "info");
-      } else {
-        await updateProfile({
-          travelPreferences: {
-            ...(user?.travelPreferences || {}),
-            currentLocation: coords,
-            locationCapturedAt: new Date().toISOString(),
-          },
-        }).catch(() => {});
-      }
-      const destination = extractDestination(trip, stops);
-      const stopLabels = stops.map((stop) => getCityLabel(getStopCity(stop))).filter(Boolean);
-      const days = daysBetweenInclusive(trip?.startDate, trip?.endDate, Math.max(1, stops.length || 3));
-      const interests = [trip?.vibe, trip?.tripType, ...stopLabels].filter(Boolean);
-      return generateTripPlan({
-        prompt: `${trip?.title || "Trip"}: ${stopLabels.join(" -> ") || destination}`,
-        days,
-        vibe: trip?.vibe || "comfort",
-        tripType: trip?.tripType || "solo",
-        preferences: {
-          source: coords ? "current location" : undefined,
-          destination,
-          startDate: trip?.startDate,
-          endDate: trip?.endDate,
-          budgetInr: (() => {
-            const cap = getTripBudget(trip);
-            return cap > 0 ? cap : undefined;
-          })(),
-          placesToCover: stopLabels,
-          stayPreference: stops.find((stop) => stop.accommodationName)?.accommodationName || undefined,
-          transportationPreferences: ["flight", "train", "cab"],
-          foodPreference: user?.travelPreferences?.foodPreference,
-        },
-        userContext: buildAiContext(user, {
-          currentLocation: coords || undefined,
-          interests,
-          previousTrips: stops.map((stop) => getCityLabel(getStopCity(stop))).filter(Boolean),
-          groupSize: trip?.tripType === "group" ? 4 : 1,
-          foodPreference: user?.travelPreferences?.foodPreference,
-        }),
-      });
-    },
-    onError: (err) => showToast(getApiErrorMessage(err), "error"),
-  });
+  const aiIdeasPanel = useMemo(() => {
+    if (aiMutation.isPending || !aiMutation.data) return null;
+    const d = aiMutation.data;
+    const hasStops = (d.stops?.length ?? 0) > 0;
+    const hasBlurb = Boolean(d.summary || d.routeStrategy || d.totalEstimatedCostInr);
+    if (!hasStops && !hasBlurb) return null;
+    return (
+      <div className="card ai-result-card">
+        <h3 className="note-card-title">AI itinerary ideas</h3>
+        {d.summary && <p style={{ color: "var(--cl-text-muted)" }}>{d.summary}</p>}
+        {d.routeStrategy && <p><strong>Route:</strong> {d.routeStrategy}</p>}
+        {d.totalEstimatedCostInr ? <p><strong>Estimated total:</strong> {usd(d.totalEstimatedCostInr)}</p> : null}
+        {hasStops ? (
+          <div className="ai-idea-grid">
+            {d.stops.map((stop, index) => (
+              <div key={`${stop.city}-${index}`} className="ai-idea-item">
+                <div className="ai-idea-kicker">{stop.days} day{stop.days === 1 ? "" : "s"}</div>
+                <strong>{stop.city}, {stop.country}</strong>
+                <p>{stop.dailyBreakdown?.[0]?.morning || stop.activities?.map((a) => a.name).join(", ")}</p>
+                {stop.estimatedCostInr ? <p><strong>{usd(stop.estimatedCostInr)}</strong></p> : null}
+                {stop.foodRecommendations?.length > 0 && <p>{stop.foodRecommendations.slice(0, 2).join(", ")}</p>}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ color: "var(--cl-text-muted)", marginTop: "var(--sp-sm)" }}>
+            No stop-by-stop block in this response. Add dates and stops, then try AI Ideas again for richer suggestions.
+          </p>
+        )}
+        {(d.timingTips?.length ?? 0) > 0 && (
+          <div className="post-tags" style={{ marginTop: "var(--sp-md)" }}>
+            {d.timingTips.slice(0, 3).map((tip, i) => <span key={`${i}-${tip}`}>{tip}</span>)}
+          </div>
+        )}
+      </div>
+    );
+  }, [aiMutation.isPending, aiMutation.data]);
 
   const addStop = (e) => {
     e.preventDefault();
@@ -211,30 +263,7 @@ export default function ItineraryBuilderPage() {
         <button className="btn btn-primary" disabled={addStopMutation.isPending}><Plus size={16} /> Add Stop</button>
       </form>
 
-      {!aiMutation.isPending && aiMutation.data?.stops?.length > 0 && (
-        <div className="card ai-result-card">
-          <h3 className="note-card-title">AI itinerary ideas</h3>
-          {aiMutation.data.summary && <p style={{ color: "var(--cl-text-muted)" }}>{aiMutation.data.summary}</p>}
-          {aiMutation.data.routeStrategy && <p><strong>Route:</strong> {aiMutation.data.routeStrategy}</p>}
-          {aiMutation.data.totalEstimatedCostInr && <p><strong>Estimated total:</strong> {usd(aiMutation.data.totalEstimatedCostInr)}</p>}
-          <div className="ai-idea-grid">
-            {aiMutation.data.stops.map((stop, index) => (
-              <div key={`${stop.city}-${index}`} className="ai-idea-item">
-                <div className="ai-idea-kicker">{stop.days} day{stop.days === 1 ? "" : "s"}</div>
-                <strong>{stop.city}, {stop.country}</strong>
-                <p>{stop.dailyBreakdown?.[0]?.morning || stop.activities?.map((a) => a.name).join(", ")}</p>
-                {stop.estimatedCostInr && <p><strong>{usd(stop.estimatedCostInr)}</strong></p>}
-                {stop.foodRecommendations?.length > 0 && <p>{stop.foodRecommendations.slice(0, 2).join(", ")}</p>}
-              </div>
-            ))}
-          </div>
-          {aiMutation.data.timingTips?.length > 0 && (
-            <div className="post-tags" style={{ marginTop: "var(--sp-md)" }}>
-              {aiMutation.data.timingTips.slice(0, 3).map((tip) => <span key={tip}>{tip}</span>)}
-            </div>
-          )}
-        </div>
-      )}
+      {aiIdeasPanel}
 
       {isLoading ? <div className="empty-state">Loading stops...</div> : stops.length === 0 ? (
         <div className="empty-state"><div className="empty-state-icon"><Calendar size={48} /></div><div className="empty-state-title">No stops yet</div></div>

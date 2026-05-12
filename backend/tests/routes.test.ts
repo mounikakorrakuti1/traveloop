@@ -212,6 +212,7 @@ jest.mock('../src/modules/maps/maps.service', () => ({
 
 jest.mock('../src/modules/ai/ai.service', () => ({
   aiService: {
+    tripPlan: jest.fn(),
     itinerary: jest.fn(),
     packing: jest.fn(),
     budget: jest.fn()
@@ -509,6 +510,7 @@ describe('implemented API route contracts', () => {
     mockedMediaService.list.mockResolvedValueOnce([mediaUpload]);
     mockedMediaService.create.mockResolvedValueOnce(mediaUpload);
     mockedMediaService.delete.mockResolvedValueOnce();
+    mockedAiService.tripPlan.mockResolvedValueOnce({ stops: [] });
     mockedAiService.itinerary.mockResolvedValueOnce({ stops: [] });
     mockedAiService.packing.mockResolvedValueOnce([{ category: 'electronics', items: ['Power bank'] }]);
     mockedAiService.budget.mockResolvedValueOnce({
@@ -589,6 +591,11 @@ describe('implemented API route contracts', () => {
       .delete(`/api/v1/trips/${trip.id}/media/${mediaUpload.id}`)
       .set('Cookie', [authCookie()])
       .expect(204);
+    await request(app)
+      .post('/api/v1/ai/trip-plan')
+      .set('Cookie', [authCookie()])
+      .send({ prompt: 'Rajasthan', days: 3, vibe: 'comfort', tripType: 'solo' })
+      .expect(200);
     await request(app)
       .post('/api/v1/ai/itinerary')
       .set('Cookie', [authCookie()])

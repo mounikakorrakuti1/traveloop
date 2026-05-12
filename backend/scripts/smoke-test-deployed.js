@@ -241,6 +241,9 @@ const main = async () => {
   await request('ai itinerary', 'POST', '/api/v1/ai/itinerary', {
     body: { prompt: 'Rajasthan heritage trip', days: 3, vibe: 'comfort', tripType: 'solo' }
   });
+  await request('ai trip plan', 'POST', '/api/v1/ai/trip-plan', {
+    body: { prompt: 'Rajasthan heritage trip', days: 3, vibe: 'comfort', tripType: 'solo' }
+  });
   await request('ai packing', 'POST', '/api/v1/ai/packing', {
     body: { destination: firstCity.name || 'Jaipur', days: 3, tripType: 'solo', season: 'winter' }
   });

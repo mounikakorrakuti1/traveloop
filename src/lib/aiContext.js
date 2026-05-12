@@ -1,6 +1,16 @@
+function asTravelStyleArray(value) {
+  if (Array.isArray(value)) {
+    return value.map((x) => String(x).trim()).filter(Boolean).slice(0, 12);
+  }
+  if (typeof value === "string" && value.trim()) {
+    return [value.trim()].slice(0, 12);
+  }
+  return [];
+}
+
 export function buildAiContext(user, extra = {}) {
   return {
-    travelStyle: user?.travelStyles || [],
+    travelStyle: asTravelStyleArray(user?.travelStyles),
     interests: extra.interests || [],
     budget: {
       min: user?.preferredBudgetMin ?? undefined,

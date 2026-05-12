@@ -1,16 +1,51 @@
 /* ── Packing Checklist ───────────────────────────────────── */
+/* Root is a column stack only — two-column layout lives in .packing-two-col */
 .packing-root {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: var(--sp-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   padding: var(--sp-xl) var(--sp-lg);
   max-width: var(--max-w-xl);
   margin-inline: auto;
+  padding-bottom: var(--sp-4xl);
+}
+
+.packing-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-lg);
+  margin-bottom: var(--sp-2xl);
+}
+
+.packing-page-header-main {
+  flex: 1;
+  min-width: min(100%, 18rem);
+}
+
+.packing-page-header-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.packing-two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: var(--sp-3xl);
   align-items: start;
 }
 
 @media (max-width: 900px) {
-  .packing-root { grid-template-columns: 1fr; }
+  .packing-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.packing-sidebar-col {
+  position: sticky;
+  top: calc(4rem + var(--sp-lg));
 }
 
 .packing-header {
@@ -19,7 +54,6 @@
   justify-content: space-between;
   gap: var(--sp-md);
   margin-bottom: var(--sp-xl);
-  grid-column: 1 / -1;
   flex-wrap: wrap;
 }
 
@@ -29,6 +63,11 @@
   font-weight: var(--fw-extrabold);
   color: var(--cl-text);
   letter-spacing: var(--ls-tight);
+}
+
+.packing-delete-btn:hover {
+  opacity: 1 !important;
+  color: var(--cl-error) !important;
 }
 
 /* Overall progress */

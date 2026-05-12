@@ -99,11 +99,9 @@ export default function DocsPage() {
   };
 
   return (
-    <div className="trips-root" style={{ maxWidth: "1200px", margin: "0 auto", paddingBottom: "var(--sp-4xl)" }}>
-      
-      {/* ── Header ────────────────────────────────────── */}
-      <div style={{ marginBottom: "var(--sp-2xl)", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "var(--sp-lg)" }}>
-        <div>
+    <div className="trips-root" style={{ maxWidth: "var(--max-w-xl)", paddingBottom: "var(--sp-4xl)" }}>
+      <header className="trip-docs-page-header">
+        <div className="trip-docs-page-header-main">
           <Link to={ROUTES.tripDetail(id)} style={{ display: "inline-flex", alignItems: "center", gap: "var(--sp-xs)", color: "var(--cl-text-muted)", textDecoration: "none", fontSize: "var(--fs-sm)", fontWeight: "var(--fw-medium)", marginBottom: "var(--sp-md)", transition: "color var(--tr-fast)" }} className="hover-accent">
             <ArrowLeft size={16} /> Back to Trip Overview
           </Link>
@@ -113,19 +111,26 @@ export default function DocsPage() {
           </div>
           <p style={{ color: "var(--cl-text-muted)", fontSize: "var(--fs-lg)", margin: 0 }}>Securely store tickets, visas, insurance, and confirmations.</p>
         </div>
-        
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-sm)", background: "rgba(42, 157, 143, 0.1)", color: "var(--cl-teal)", padding: "var(--sp-sm) var(--sp-md)", borderRadius: "var(--br-full)", fontSize: "var(--fs-sm)", fontWeight: "var(--fw-bold)" }}>
+        <div className="trip-docs-badge">
           <ShieldCheck size={16} /> Secure Vault
         </div>
-      </div>
+      </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 400px", gap: "var(--sp-3xl)", alignItems: "start" }}>
+      <div className="trip-docs-layout">
         
         {/* ── Main Documents List ─────────────────────── */}
         <div>
-          <div className="doc-toolbar" style={{ marginBottom: "var(--sp-xl)", position: "relative" }}>
-            <Search size={18} color="var(--cl-text-muted)" style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)" }} />
-            <input className="input" style={{ paddingLeft: "44px", background: "var(--cl-surface)", borderRadius: "var(--br-xl)", border: "1px solid var(--cl-border)", boxShadow: "var(--shadow-sm)" }} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, type, or notes..." />
+          <div className="doc-toolbar">
+            <span className="doc-toolbar-icon" aria-hidden>
+              <Search size={18} />
+            </span>
+            <input
+              className="input doc-toolbar-input"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name, type, or notes..."
+              style={{ background: "var(--cl-surface)", borderRadius: "var(--br-xl)", border: "1px solid var(--cl-border)", boxShadow: "var(--shadow-sm)" }}
+            />
           </div>
 
           {isLoading ? (
@@ -145,57 +150,51 @@ export default function DocsPage() {
               </p>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-md)" }}>
+            <div className="doc-grid">
               {filtered.map((doc) => (
-                <div className="card card-hover" key={doc.id} style={{ display: "flex", alignItems: "center", padding: "var(--sp-lg)", border: "1px solid var(--cl-border)", background: "var(--cl-surface)", borderRadius: "var(--br-xl)" }}>
-                  
-                  <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(42, 157, 143, 0.1)", color: "var(--cl-teal)", display: "flex", alignItems: "center", justifyContent: "center", marginRight: "var(--sp-lg)", flexShrink: 0 }}>
-                    <FileType size={24} />
+                <article key={doc.id} className="doc-row card-hover">
+                  <div className="doc-row-icon">
+                    <FileType size={22} />
                   </div>
-                  
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: "var(--sp-lg)" }}>
-                    <h3 style={{ fontSize: "var(--fs-lg)", margin: "0 0 4px 0", color: "var(--cl-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{doc.fileName}</h3>
-                    
-                    <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "var(--sp-sm) var(--sp-lg)", fontSize: "var(--fs-sm)", color: "var(--cl-text-muted)" }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: "4px", textTransform: "capitalize" }}>
-                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--cl-accent)" }} />
+
+                  <div className="doc-row-main">
+                    <h3 className="doc-row-title" title={doc.fileName}>{doc.fileName}</h3>
+
+                    <div className="doc-row-meta">
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", textTransform: "capitalize" }}>
+                        <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--cl-accent)", flexShrink: 0 }} />
                         {doc.documentType}
                       </span>
-                      
+
                       {doc.expiresAt && (
-                        <span style={{ display: "flex", alignItems: "center", gap: "4px", color: new Date(doc.expiresAt) < new Date() ? "var(--cl-error)" : "var(--cl-text-muted)" }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", color: new Date(doc.expiresAt) < new Date() ? "var(--cl-error)" : "var(--cl-text-muted)" }}>
                           <Calendar size={14} /> Expires {formatDate(doc.expiresAt)}
                         </span>
                       )}
-                      
+
                       <span>{(doc.fileSizeBytes / (1024 * 1024)).toFixed(2)} MB</span>
                     </div>
-                    
-                    {doc.caption && (
-                      <p style={{ margin: "var(--sp-sm) 0 0 0", fontSize: "var(--fs-sm)", color: "var(--cl-text)", background: "var(--cl-bg-subtle)", padding: "8px 12px", borderRadius: "var(--br-md)" }}>
-                        {doc.caption}
-                      </p>
-                    )}
+
+                    {doc.caption ? <p className="doc-row-caption">{doc.caption}</p> : null}
                   </div>
-                  
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-sm)" }}>
+
+                  <div className="doc-row-actions">
                     <a className="btn btn-secondary btn-icon" href={doc.cloudinaryUrl} target="_blank" rel="noreferrer" title="Download">
                       <Download size={18} />
                     </a>
-                    <button className="btn btn-ghost btn-icon" onClick={() => window.confirm(`Delete ${doc.fileName}?`) && deleteMutation.mutate(doc.id)} style={{ color: "var(--cl-error)" }} title="Delete">
+                    <button type="button" className="btn btn-ghost btn-icon" onClick={() => window.confirm(`Delete ${doc.fileName}?`) && deleteMutation.mutate(doc.id)} style={{ color: "var(--cl-error)" }} title="Delete">
                       <Trash2 size={18} />
                     </button>
                   </div>
-                  
-                </div>
+                </article>
               ))}
             </div>
           )}
         </div>
 
         {/* ── Upload Sidebar ────────────────────────────── */}
-        <div style={{ position: "sticky", top: "var(--sp-2xl)" }}>
-          <div className="card" style={{ background: "var(--cl-surface)", border: "1px solid var(--cl-border)", boxShadow: "var(--shadow-sm)" }}>
+        <div className="trip-docs-sidebar">
+          <div className="card trip-docs-upload-card">
             <h3 style={{ fontSize: "var(--fs-lg)", margin: "0 0 var(--sp-md) 0", display: "flex", alignItems: "center", gap: "var(--sp-xs)" }}>
               <Upload size={20} color="var(--cl-accent)" /> Add Document
             </h3>
