@@ -1,22 +1,24 @@
 import { useState } from "react";
 import { useDestinationImage } from "@/hooks/useDestinationImage";
 
-export default function DestinationImage({ name, city, query, icon: Icon, big = false }) {
+export default function DestinationImage({ name, city, query, icon: Icon, big = false, imageUrl }) {
   const [loaded, setLoaded] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
-  const { data, isLoading, isError } = useDestinationImage(query || city || name);
-  const showFallback = imageFailed || isError || (!isLoading && !data?.imageUrl);
+  const { data, isLoading, isError } = useDestinationImage(imageUrl ? null : (query || city || name));
+  
+  const finalImageUrl = imageUrl || data?.imageUrl;
+  const showFallback = imageFailed || (!imageUrl && (isError || (!isLoading && !data?.imageUrl)));
 
   return (
     <div className={`dest-card-bg${loaded ? " dest-card-bg-loaded" : ""}`}>
       {!loaded && !showFallback && <div className="dest-image-skeleton" aria-hidden="true" />}
 
-      {data?.imageUrl && !showFallback && (
+      {finalImageUrl && !showFallback && (
         <img
-          src={data.imageUrl}
-          srcSet={data.smallImageUrl ? `${data.smallImageUrl} 640w, ${data.imageUrl} 1200w` : undefined}
+          src={finalImageUrl}
+          srcSet={!imageUrl && data?.smallImageUrl ? `${data.smallImageUrl} 640w, ${finalImageUrl} 1200w` : undefined}
           sizes={big ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 50vw, 33vw"}
-          alt={data.alt || `${name} travel destination`}
+          alt={data?.alt || `${name} travel destination`}
           className="dest-card-img"
           loading="lazy"
           decoding="async"
