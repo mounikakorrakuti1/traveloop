@@ -19,17 +19,22 @@ const STABLE_TRIP_IMAGES = [
   'https://images.unsplash.com/photo-1592639296346-560c37a0f711?w=1400&q=80'
 ] as const;
 
+/** Wikimedia Commons — stable, location-accurate hero URLs for seeded cities. */
 const CITY_COVER: Record<string, string> = {
   Vijayawada: 'https://images.unsplash.com/photo-1590766740616-1ced2bb43f3e?w=1400&q=80',
   Srinagar: 'https://images.unsplash.com/photo-1597074866923-dc0589150458?w=1400&q=80',
-  Gulmarg: 'https://images.unsplash.com/photo-1582560469781-1423e6bd498a?w=1400&q=80',
+  Gulmarg:
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Ancient_Temple%2C_Gulmarg.jpg/960px-Ancient_Temple%2C_Gulmarg.jpg',
   Pahalgam: 'https://images.unsplash.com/photo-1595815771614-ade9d652a65d?w=1400&q=80',
-  Hampi: 'https://images.unsplash.com/photo-1590050751759-db52da741c41?w=1400&q=80',
+  Hampi: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Wide_angle_of_Galigopuram_of_Virupaksha_Temple%2C_Hampi_%2804%29_%28cropped%29.jpg/960px-Wide_angle_of_Galigopuram_of_Virupaksha_Temple%2C_Hampi_%2804%29_%28cropped%29.jpg',
   Gokarna: 'https://images.unsplash.com/photo-1590766940554-634853c6e181?w=1400&q=80',
-  Shillong: 'https://images.unsplash.com/photo-1592639296346-560c37a0f711?w=1400&q=80',
-  Cherrapunji: 'https://images.unsplash.com/photo-1625046633788-6a1d03f7b04f?w=1400&q=80',
-  Dawki: 'https://images.unsplash.com/photo-1506461883276-594a12b11cf3?w=1400&q=80'
+  Shillong:
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Elephant_Falls_II%2C_Shillong.jpg/960px-Elephant_Falls_II%2C_Shillong.jpg',
+  Cherrapunji: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Cherrapunji.jpg/960px-Cherrapunji.jpg',
+  Dawki: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Umngot_river%2C_Dawki.jpg/960px-Umngot_river%2C_Dawki.jpg'
 };
+
+const INR_PER_USD_SEED = 83;
 
 function pickImg(seed: string): string {
   const h = seed.split('').reduce((acc, ch) => ch.charCodeAt(0) + ((acc << 5) - acc), 0);
@@ -449,7 +454,7 @@ async function createTrip(userId: string, trip: {
       startDate: new Date(trip.start),
       endDate: new Date(trip.end),
       tripType: trip.type,
-      budgetCapUsd: trip.cap,
+      budgetCapUsd: Math.round((trip.cap / INR_PER_USD_SEED) * 100) / 100,
       vibe: trip.vibe,
       status: trip.status,
       isPublic: trip.isPublic,
