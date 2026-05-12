@@ -34,6 +34,8 @@ export const QUERY_KEYS = {
   cities:     (q) => ["cities", q],
   cityDetail: (id) => ["cities", id, "detail"],
   cityIntelligence: (id) => ["cities", id, "intelligence"],
+  trendingDestinations: ["destinations", "trending"],
+  nearbyDestinations: (coords) => ["destinations", "nearby", coords],
   transportSearch: (params) => ["transport", params],
   communityFeed: (page = 1) => ["community", "feed", page],
   activities: (filters) => ["activities", filters],

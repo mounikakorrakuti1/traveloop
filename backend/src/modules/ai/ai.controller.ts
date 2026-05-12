@@ -12,6 +12,15 @@ export class AiController {
     }
   };
 
+  public tripPlan = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const itinerary = await aiService.tripPlan(req.user?.id ?? '', req.body as ItineraryDto);
+      res.status(200).json({ data: itinerary, meta: null });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   public packing = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const packing = await aiService.packing(req.user?.id ?? '', req.body as PackingSuggestionDto);

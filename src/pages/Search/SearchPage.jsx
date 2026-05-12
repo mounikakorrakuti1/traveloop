@@ -7,6 +7,7 @@ import { listTrips } from "@/api/trips.api";
 import { QUERY_KEYS, ROUTES } from "@/lib/constants";
 import { getCityLabel, usd } from "@/lib/format";
 import { getCityFromTitle } from "@/lib/cityImages";
+import { uniqueDestinations } from "@/lib/dedupe";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDestinationImage } from "@/hooks/useDestinationImage";
 import { CityImageThumb, UnsplashCredit } from "@/components/shared/CityImageThumb";
@@ -45,7 +46,7 @@ export default function SearchPage() {
   const activitiesQuery = useQuery({ queryKey: QUERY_KEYS.activities({ q: debounced }), queryFn: () => searchActivities({ q: debounced, limit: 10 }), enabled: enabled && ["All", "Activities"].includes(filter) });
 
   const tripResults = tripsQuery.data?.trips ?? [];
-  const cityResults = citiesQuery.data?.cities ?? [];
+  const cityResults = uniqueDestinations(citiesQuery.data?.cities ?? []);
   const activityResults = activitiesQuery.data?.activities ?? [];
   const total = tripResults.length + cityResults.length + activityResults.length;
 
@@ -68,7 +69,7 @@ export default function SearchPage() {
           {total === 0 ? <div className="empty-state">No matching backend records found.</div> : (
             <div className="search-results-grid">
               {tripResults.map((trip) => <Link key={trip.id} to={ROUTES.tripDetail(trip.id)} className="search-result-card"><div className="search-result-thumb"><Map size={24} /></div><div className="search-result-body"><div className="search-result-name">{trip.title}</div><div className="search-result-meta"><Calendar size={14} /> {trip.startDate}</div></div></Link>)}
-              {cityResults.map((city) => <div key={city.id} className="search-result-card"><div className="search-result-thumb"><MapPin size={24} /></div><div className="search-result-body"><div className="search-result-name">{city.name}</div><div className="search-result-meta">{getCityLabel(city)}</div></div></div>)}
+              {cityResults.map((city) => <Link key={city.id} to={ROUTES.cityDetail(city.id)} className="search-result-card"><div className="search-result-thumb"><MapPin size={24} /></div><div className="search-result-body"><div className="search-result-name">{city.name}</div><div className="search-result-meta">{getCityLabel(city)}</div></div></Link>)}
               {activityResults.map((activity) => <ActivityResultCard key={activity.id} activity={activity} />)}
             </div>
           )}

@@ -5,7 +5,7 @@ export function formatDate(value) {
 
 export function usd(value) {
   const n = Number(value ?? 0);
-  return `₹${Number.isFinite(n) ? n.toLocaleString("en-IN") : "0"}`;
+  return `INR ${Number.isFinite(n) ? n.toLocaleString("en-IN") : "0"}`;
 }
 
 export function getTripBudget(trip) {

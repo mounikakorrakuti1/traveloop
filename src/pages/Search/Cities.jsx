@@ -6,6 +6,7 @@ import { QUERY_KEYS, ROUTES } from "@/lib/constants";
 import { getCityLabel } from "@/lib/format";
 import { SmartImage } from "@/components/shared/SmartImage";
 import { getCityThumbnail } from "@/lib/cityImages";
+import { uniqueDestinations } from "@/lib/dedupe";
 import { useDebounce } from "@/hooks/useDebounce";
 import { SkeletonCard } from "@/components/shared/Skeleton";
 import { Search, MapPin, Compass } from "lucide-react";
@@ -21,7 +22,7 @@ export default function CitiesPage() {
     staleTime: 10 * 60 * 1000,
   });
   
-  const cities = useMemo(() => data?.cities ?? [], [data?.cities]);
+  const cities = useMemo(() => uniqueDestinations(data?.cities ?? []), [data?.cities]);
   const regions = useMemo(() => ["all", ...Array.from(new Set(cities.map((city) => city.region).filter(Boolean)))], [cities]);
   const visibleCities = region === "all" ? cities : cities.filter((city) => city.region === region);
 

@@ -10,7 +10,12 @@ import { aiRouter } from './modules/ai/ai.router';
 import { authRouter } from './modules/auth/auth.router';
 import { citiesRouter } from './modules/cities/cities.router';
 import { communityRouter } from './modules/community/community.router';
-import { destinationsRouter } from './modules/destinations/destinations.router';
+import {
+  destinationLookupRouter,
+  destinationsRouter,
+  nearbyRouter,
+  weatherRouter
+} from './modules/destinations/destinations.router';
 import { docsRouter } from './modules/docs/docs.router';
 import { mapsRouter } from './modules/maps/maps.router';
 import { mediaRouter } from './modules/media/media.router';
@@ -28,6 +33,9 @@ apiRouter.use('/auth', authRouter);
 apiRouter.use('/trips', tripsRouter);
 apiRouter.use('/cities', citiesRouter);
 apiRouter.use('/destinations', destinationsRouter);
+apiRouter.use('/destination', destinationLookupRouter);
+apiRouter.use('/nearby', nearbyRouter);
+apiRouter.use('/weather', weatherRouter);
 apiRouter.use('/community', communityRouter);
 apiRouter.use('/activities', activitiesRouter);
 apiRouter.use('/ai', aiRouter);

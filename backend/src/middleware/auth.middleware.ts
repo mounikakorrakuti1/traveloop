@@ -60,3 +60,38 @@ export const authMiddleware = async (req: Request, _res: Response, next: NextFun
     next(new AppError('Invalid authentication token', 'UNAUTHORIZED', 401));
   }
 };
+
+export const optionalAuthMiddleware = async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
+  const token = req.cookies?.token;
+  if (typeof token !== 'string') {
+    next();
+    return;
+  }
+
+  try {
+    const payload = jwt.verify(token, env.JWT_SECRET);
+    if (!isJwtPayload(payload)) {
+      next();
+      return;
+    }
+
+    const activeUser = await prisma.user.findFirst({
+      where: { id: payload.sub, isDeleted: false, deletedAt: null },
+      select: { id: true }
+    });
+    if (!activeUser) {
+      next();
+      return;
+    }
+
+    req.user = {
+      id: payload.sub,
+      email: payload.email,
+      role: payload.role,
+      isAdmin: payload.isAdmin
+    };
+    next();
+  } catch {
+    next();
+  }
+};

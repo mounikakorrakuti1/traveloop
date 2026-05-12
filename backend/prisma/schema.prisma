@@ -44,6 +44,7 @@ model User {
   communityComments CommunityComment[] @relation("CommunityCommentAuthor")
   communityLikes  CommunityLike[]
   communityBookmarks CommunityBookmark[]
+  communityPlaceMessages CommunityPlaceMessage[] @relation("CommunityPlaceMessageAuthor")
 
   @@index([email], map: "idx_users_email")
   @@index([isDeleted], map: "idx_users_is_deleted")
@@ -97,9 +98,31 @@ model City {
   searchVector  Unsupported("tsvector")? @map("search_vector")
   stops         Stop[]
   activities    Activity[]
+  destinationEnrichment DestinationEnrichment?
 
   @@index([countryCode], map: "idx_cities_country_code")
   @@map("cities")
+}
+
+model DestinationEnrichment {
+  id             String   @id @default(uuid()) @db.Uuid
+  cityId         String   @unique @map("city_id") @db.Uuid
+  description    String?  @db.Text
+  wikiUrl        String?  @map("wiki_url") @db.Text
+  heroImageUrl   String?  @map("hero_image_url") @db.Text
+  gallery        Json?
+  attractions    Json?
+  weather        Json?
+  budgetEstimate Json?    @map("budget_estimate")
+  aiSummary      String?  @map("ai_summary") @db.Text
+  sourceMetadata Json?    @map("source_metadata")
+  refreshedAt    DateTime @default(now()) @map("refreshed_at") @db.Timestamp(6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+  city           City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  @@index([refreshedAt], map: "idx_destination_enrichments_refreshed_at")
+  @@map("destination_enrichments")
 }
 
 model Stop {
@@ -282,4 +305,20 @@ model CommunityBookmark {
   @@unique([postId, userId], map: "uq_community_bookmark_post_user")
   @@index([postId], map: "idx_community_bookmarks_post_id")
   @@map("community_bookmarks")
+}
+
+model CommunityPlaceMessage {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String?  @map("user_id") @db.Uuid
+  cityId          String?  @map("city_id") @db.Uuid
+  destinationName String   @map("destination_name") @db.VarChar(120)
+  authorAlias     String?  @map("author_alias") @db.VarChar(80)
+  isSystem        Boolean  @default(false) @map("is_system")
+  body            String   @db.Text
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  user            User?    @relation("CommunityPlaceMessageAuthor", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([cityId, createdAt], map: "idx_place_messages_city_created")
+  @@index([destinationName, createdAt], map: "idx_place_messages_destination_created")
+  @@map("community_place_messages")
 }

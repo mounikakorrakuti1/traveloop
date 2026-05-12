@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle, Flame, Globe, Heart, MapPin, MessageCircle, Rocket, Share2, Sparkles, Star } from "lucide-react";
-import { addCommunityComment, createCommunityPost, listCommunityFeed, toggleCommunityLike } from "@/api/community.api";
+import { addCommunityComment, createCommunityPost, getSimilarTravelers, listCommunityFeed, toggleCommunityLike } from "@/api/community.api";
 import { QUERY_KEYS, ROUTES } from "@/lib/constants";
 import { COMMUNITY_POSTS } from "@/lib/communityData";
 import { useAuthStore } from "@/store/authStore";
@@ -40,6 +40,12 @@ export default function CommunityTabPage() {
   const { data, isLoading } = useQuery({
     queryKey: QUERY_KEYS.communityFeed(1),
     queryFn: () => listCommunityFeed({ page: 1, limit: 16 }),
+    staleTime: 10 * 60 * 1000,
+  });
+  const similarTravelersQuery = useQuery({
+    queryKey: ["community", "similar-travelers"],
+    queryFn: getSimilarTravelers,
+    enabled: Boolean(user),
     staleTime: 10 * 60 * 1000,
   });
 
@@ -140,7 +146,7 @@ export default function CommunityTabPage() {
     { label: "Saved Itineraries", value: 3 },
     { label: "Community Rank", value: "Explorer" },
   ];
-  const similarTravellers = useMemo(() => {
+  const localSimilarTravellers = useMemo(() => {
     const byAuthor = new Map();
     (data?.posts || []).forEach((post) => {
       const authorName = post.author?.name || post.author;
@@ -151,6 +157,12 @@ export default function CommunityTabPage() {
     });
     return Array.from(byAuthor.values()).sort((a, b) => b.score - a.score).slice(0, 4);
   }, [data?.posts, user?.name]);
+  const similarTravellers = similarTravelersQuery.data?.length
+    ? similarTravelersQuery.data.map((traveller) => ({
+        name: traveller.name,
+        destination: traveller.matchReason || traveller.travelerProfile || "Matched traveler",
+      }))
+    : localSimilarTravellers;
 
   return (
     <div className="community-root">

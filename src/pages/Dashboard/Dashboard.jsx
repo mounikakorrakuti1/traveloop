@@ -2,11 +2,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { listTrips } from "@/api/trips.api";
 import { searchCities } from "@/api/cities.api";
+import { getTrendingDestinations } from "@/api/destinations.api";
 import { QUERY_KEYS, ROUTES } from "@/lib/constants";
 import { useAuthStore } from "@/store/authStore";
 import { formatDate, getTripBudget, usd } from "@/lib/format";
 import { getTripCardCoverUrl } from "@/lib/tripCover";
 import { getCityThumbnail } from "@/lib/cityImages";
+import { uniqueDestinations } from "@/lib/dedupe";
 import { SmartImage } from "@/components/shared/SmartImage";
 import { SkeletonCard, SkeletonRow } from "@/components/shared/Skeleton";
 import "@/styles/components/dashboard.css";
@@ -19,7 +21,9 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const { data: tripsData, isLoading: isLoadingTrips } = useQuery({ queryKey: QUERY_KEYS.trips({ limit: 6 }), queryFn: () => listTrips({ limit: 6, sort: "createdAt" }) });
   const { data: citiesData, isLoading: isLoadingCities } = useQuery({ queryKey: QUERY_KEYS.cities("dashboard"), queryFn: () => searchCities({ limit: 8 }), staleTime: 10 * 60 * 1000 });
+  const { data: trendingDestinations, isLoading: isLoadingTrending } = useQuery({ queryKey: QUERY_KEYS.trendingDestinations, queryFn: getTrendingDestinations, staleTime: 30 * 60 * 1000 });
   const trips = tripsData?.trips ?? [];
+  const exploreDestinations = uniqueDestinations(trendingDestinations?.length ? trendingDestinations : citiesData?.cities ?? []).slice(0, 6);
   const firstName = user?.name?.split(" ")[0] || "Traveller";
 
   return (
@@ -175,18 +179,21 @@ export default function DashboardPage() {
               <Link to={ROUTES.cities} style={{ fontSize: "var(--fs-sm)", color: "var(--cl-accent)", fontWeight: "var(--fw-bold)", display: "flex", alignItems: "center", gap: "4px" }}>Explore <ArrowRight size={14} /></Link>
             </div>
             
-            {isLoadingCities ? (
+            {isLoadingCities || isLoadingTrending ? (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--sp-sm)" }}>
                 {Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)}
               </div>
             ) : (
               <div className="dest-row" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "var(--sp-lg)" }}>
-                {(citiesData?.cities ?? []).slice(0, 6).map((city) => (
-                  <Link key={city.id} to={ROUTES.cityDetail(city.id)} className="card card-hover dest-tile" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column", border: "1px solid var(--cl-border)", borderRadius: "var(--br-2xl)", transition: "transform 0.3s ease" }}>
+                {exploreDestinations.map((city) => (
+                  <Link key={city.id ?? city.name} to={city.id ? ROUTES.cityDetail(city.id) : ROUTES.search} className="card card-hover dest-tile" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column", border: "1px solid var(--cl-border)", borderRadius: "var(--br-2xl)", transition: "transform 0.3s ease" }}>
                     <div style={{ width: "100%", aspectRatio: "1/1", overflow: "hidden" }}>
-                      <SmartImage src={city.thumbnailUrl} fallbackSrc={getCityThumbnail(city)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <SmartImage src={city.image ?? city.thumbnailUrl} fallbackSrc={getCityThumbnail(city)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
-                    <div className="dest-tile-name" style={{ padding: "var(--sp-md)", fontWeight: "var(--fw-bold)", fontSize: "var(--fs-sm)", textAlign: "center", background: "var(--cl-surface)", color: "var(--cl-accent)", opacity: 1, display: "block" }}>{city.name}</div>
+                    <div className="dest-tile-name" style={{ padding: "var(--sp-md)", fontWeight: "var(--fw-bold)", fontSize: "var(--fs-sm)", textAlign: "center", background: "var(--cl-surface)", color: "var(--cl-accent)", opacity: 1, display: "block" }}>
+                      <div>{city.name}</div>
+                      {city.weather?.condition ? <div style={{ color: "var(--cl-text-muted)", fontSize: "var(--fs-2xs)", fontWeight: "var(--fw-medium)", marginTop: "4px" }}>{city.weather.temp}C · {city.weather.condition}</div> : null}
+                    </div>
                   </Link>
                 ))}
               </div>

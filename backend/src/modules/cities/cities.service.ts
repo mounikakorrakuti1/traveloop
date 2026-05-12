@@ -10,9 +10,24 @@ interface CityListResult {
   meta: PaginationMeta;
 }
 
-type CityWithActivities = PrismaCity & { activities: PrismaActivity[] };
+type CityWithActivities = PrismaCity & { activities: PrismaActivity[]; destinationEnrichment?: DestinationEnrichment | null };
+type CityWithEnrichment = PrismaCity & { destinationEnrichment?: DestinationEnrichment | null };
+type DestinationEnrichment = {
+  cityId: string;
+  description: string | null;
+  heroImageUrl: string | null;
+  weather: unknown;
+  attractions: unknown;
+  aiSummary: string | null;
+};
 
-const mapCity = (city: PrismaCity): City => ({
+const mapCity = (city: CityWithEnrichment): City & {
+  description?: string | null;
+  image?: string | null;
+  weather?: unknown;
+  topAttractions?: unknown[];
+  aiSummary?: string | null;
+} => ({
   id: city.id,
   name: city.name,
   state: city.state,
@@ -24,7 +39,14 @@ const mapCity = (city: PrismaCity): City => ({
   areaType: city.areaType,
   bestSeason: city.bestSeason,
   isRegionalGem: city.isRegionalGem,
-  thumbnailUrl: city.thumbnailUrl
+  thumbnailUrl: city.destinationEnrichment?.heroImageUrl ?? city.thumbnailUrl,
+  description: city.destinationEnrichment?.description ?? null,
+  image: city.destinationEnrichment?.heroImageUrl ?? city.thumbnailUrl,
+  weather: city.destinationEnrichment?.weather ?? null,
+  topAttractions: Array.isArray(city.destinationEnrichment?.attractions)
+    ? city.destinationEnrichment?.attractions.slice(0, 5)
+    : [],
+  aiSummary: city.destinationEnrichment?.aiSummary ?? null
 });
 
 const mapActivity = (activity: PrismaActivity): Activity => ({
@@ -38,6 +60,22 @@ const mapActivity = (activity: PrismaActivity): Activity => ({
   description: activity.description,
   imageUrl: activity.imageUrl
 });
+
+const cityDedupeKey = (city: PrismaCity): string =>
+  [city.name, city.state, city.country]
+    .filter(Boolean)
+    .map((value) => String(value).trim().toLowerCase())
+    .join('|');
+
+const uniqueCities = (cities: PrismaCity[]): PrismaCity[] => {
+  const seen = new Set<string>();
+  return cities.filter((city) => {
+    const key = cityDedupeKey(city);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
 
 export class CitiesService {
   public async list(query: ListCitiesQueryDto): Promise<CityListResult> {
@@ -63,9 +101,11 @@ export class CitiesService {
       }),
       citiesRepository.count(where)
     ]);
+    const unique = uniqueCities(cities);
+    const enrichments = await this.getEnrichmentMap(unique.map((city) => city.id));
 
     return {
-      data: cities.map(mapCity),
+      data: unique.map((city) => mapCity({ ...city, destinationEnrichment: enrichments.get(city.id) ?? null })),
       meta: { total, page: pagination.page, limit: pagination.limit }
     };
   }
@@ -77,9 +117,24 @@ export class CitiesService {
     }
 
     return {
-      ...mapCity(city),
+      ...mapCity({ ...city, destinationEnrichment: await this.getEnrichment(city.id) }),
       activities: city.activities.map(mapActivity)
     };
+  }
+
+  private async getEnrichment(cityId: string): Promise<DestinationEnrichment | null> {
+    const rows = await this.getEnrichments([cityId]);
+    return rows[0] ?? null;
+  }
+
+  private async getEnrichmentMap(cityIds: string[]): Promise<Map<string, DestinationEnrichment>> {
+    const rows = await this.getEnrichments(cityIds);
+    return new Map(rows.map((row) => [row.cityId, row]));
+  }
+
+  private async getEnrichments(cityIds: string[]): Promise<DestinationEnrichment[]> {
+    if (cityIds.length === 0) return [];
+    return citiesRepository.rawDestinationEnrichments(cityIds);
   }
 }
 

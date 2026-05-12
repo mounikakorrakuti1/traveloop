@@ -1,4 +1,4 @@
-import type { Activity, City, Prisma } from '@prisma/client';
+import type { City, Prisma } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 
 export class CitiesRepository {
@@ -10,11 +10,38 @@ export class CitiesRepository {
     return prisma.city.count({ where });
   }
 
-  public findById(id: string): Promise<(City & { activities: Activity[] }) | null> {
+  public findById(id: string) {
     return prisma.city.findUnique({
       where: { id },
       include: { activities: true }
     });
+  }
+
+  public async rawDestinationEnrichments(cityIds: string[]) {
+    try {
+      return await prisma.$queryRaw<
+        Array<{
+          cityId: string;
+          description: string | null;
+          heroImageUrl: string | null;
+          weather: unknown;
+          attractions: unknown;
+          aiSummary: string | null;
+        }>
+      >`
+        SELECT
+          city_id AS "cityId",
+          description,
+          hero_image_url AS "heroImageUrl",
+          weather,
+          attractions,
+          ai_summary AS "aiSummary"
+        FROM destination_enrichments
+        WHERE city_id = ANY(${cityIds}::uuid[])
+      `;
+    } catch {
+      return [];
+    }
   }
 }
 

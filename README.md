@@ -97,6 +97,45 @@ Traveloop solves this in one platform:
 
 ---
 
+## Recently Added Platform Features
+
+Traveloop has been extended beyond the original static-data MVP into a dynamic travel intelligence platform. The frontend still uses the existing dashboard, search, city detail, and community screens, but the data layer now supports real enrichment and safer fallbacks.
+
+### Dynamic Destination Intelligence
+
+- Backend destination aggregation layer that keeps third-party calls behind Traveloop APIs.
+- Modular providers for Wikipedia, Unsplash, OpenTripMap, OpenWeather, and GeoDB Cities.
+- Normalized destination responses with description, image, gallery, weather, attractions, budget estimate, best season, and AI-ready summary.
+- DB-backed `destination_enrichments` catalog so the website can serve stable destination content without calling external APIs on every page load.
+- Destination deduplication across dashboard Explore cards, Search results, Cities/Explore page, and backend city/trending responses.
+- Legacy city image proxy dependency removed from the frontend; image lookups now go through the main Traveloop backend.
+
+### Travel Transport Discovery
+
+- City detail pages now show train, flight, and bus options through the backend transport search endpoint.
+- Transport cards include mode-specific icons, operators, timings, duration, indicative INR pricing, and route notes.
+- Graceful fallback transport data is generated when live/provider-backed inventory is unavailable, so destination pages do not render empty transport sections.
+
+### AI and Community Enhancements
+
+- New AI trip-plan endpoint that injects user context plus destination intelligence before itinerary generation.
+- Community feed responses now include computed AI-style post summaries and auto-tags.
+- Similar traveler discovery endpoint for matching users by profile/style.
+- Destination chat rooms let authenticated travelers discuss the same place inside Traveloop without exposing email, phone, username, or other personal contact details. The city detail page renders this as a collapsible pop-down chat box with persisted starter messages, generated traveler aliases, polling, and DB-backed user messages scoped by city/destination.
+
+### Destination Catalog Maintenance
+
+- New enrichment script for populating destination data into the database:
+
+```bash
+cd backend
+npm run destinations:enrich
+```
+
+Run this after migrations and seeding when you want to refresh stored destination descriptions, images, attractions, weather, and summaries.
+
+---
+
 ## Architecture
 
 Three-tier architecture with strict separation of concerns.
@@ -172,6 +211,7 @@ HEAD
 | AI | Google Gemini 1.5 Flash | Free: 15 req/min, 1M tokens/day — sufficient for demo and MVP |
 | Media | Cloudinary Free | Browser-direct upload, 25 GB storage, signed uploads from backend |
 | Email | Resend.com | 3,000 emails/month free, modern API, OTP and welcome email delivery |
+| Destination Data | Wikipedia, Unsplash, OpenTripMap, OpenWeather, GeoDB Cities | External enrichment stays server-side, cached/stored in Traveloop DB |
 | Frontend Host | Vercel | 100 GB bandwidth/month free, preview deploys on PR |
 | Backend Host | Railway.app | Free $5 credit/month, includes PostgreSQL, no spin-down on inactivity |
 | Logger | Winston + Morgan | Structured JSON logging, HTTP access log |
@@ -275,6 +315,11 @@ External Services
 - Google Gemini AI
 - Cloudinary
 - OpenStreetMap
+- Wikipedia
+- Unsplash
+- OpenTripMap
+- OpenWeather
+- GeoDB Cities
 - Resend
 - Twilio
 >>>>>>> 710944a (connect real backend auth)
@@ -394,6 +439,7 @@ and versioned API routes under:
 
 ## AI-Powered Planning
 - AI itinerary generation
+- AI enriched trip planning with destination intelligence context
 - AI packing recommendations
 - AI budget estimation
 - Personalized travel workflows
@@ -403,10 +449,28 @@ and versioned API routes under:
 - Trip creation and management
 - Dynamic itinerary builder
 - Destination exploration
+- DB-backed destination enrichment catalog
+- Dynamic Explore/Cities/Search destination deduplication
+- Train, flight, and bus discovery on destination detail pages
 - Multi-stop trip organization
 - Public itinerary sharing
 - Notes and packing management
 - Budget tracking workflows
+
+## Community
+- Community post feed with likes, bookmarks, and comments
+- Computed AI-style summaries for travel posts
+- Auto-tagging of posts by destination and travel theme
+- Similar traveler suggestions based on traveler profile and travel styles
+
+## Travel Intelligence & Aggregation
+- Wikipedia descriptions and destination summaries
+- Unsplash destination imagery through backend-only API access
+- OpenTripMap attractions and nearby places
+- OpenWeather weather snapshots and seasonal context
+- GeoDB city metadata and coordinates
+- Backend TTL caching plus stored DB enrichment for production stability
+- Graceful fallbacks when external APIs, quotas, or network calls fail
 
 ## Maps & Location Services
 - OpenStreetMap integration
@@ -430,11 +494,14 @@ Implemented backend modules include:
 - Trips
 - Stops
 - Cities
+- Destinations
+- Destination Enrichments
 - Activities
 - Notes
 - Packing Items
 - Media
 - AI Services
+- Travel Data Aggregation Services
 - Notifications
 - Public Trip Sharing
 - Maps & Route Services
@@ -789,6 +856,10 @@ HEAD
 | Variable | Description |
 | --- | --- |
 | `GEMINI_API_KEY` | Google AI Studio key. If missing, AI endpoints return curated fallback data. |
+| `UNSPLASH_ACCESS_KEY` | Unsplash access key for destination hero images and galleries. Backend only. |
+| `OPENTRIPMAP_API_KEY` | OpenTripMap key for attractions, monuments, and nearby places. Backend only. |
+| `OPENWEATHER_API_KEY` | OpenWeather key for current destination weather. Backend only. |
+| `GEODB_API_KEY` | RapidAPI GeoDB Cities key for city metadata and coordinates. Backend only. |
 | `CLOUDINARY_CLOUD_NAME` | For Cloudinary signature generation. |
 | `CLOUDINARY_API_KEY` | Cloudinary dashboard. |
 | `CLOUDINARY_API_SECRET` | Never expose to the client. |
@@ -822,6 +893,7 @@ PostgreSQL 16. 3NF normalized schema. All foreign keys enforced at the database 
 | `trips` | `id`, `user_id` (FK), `title`, `start_date`, `end_date`, `trip_type` ENUM, `budget_cap_usd`, `vibe` ENUM, `is_public`, `public_slug` (UNIQUE), `status` ENUM, `deleted_at` |
 | `stops` | `id`, `trip_id` (FK), `city_id` (FK), `order_index`, `arrival_date`, `departure_date`, `accommodation_name`, `accommodation_cost` |
 | `cities` | `id`, `name`, `state`, `country`, `latitude`, `longitude`, `cost_index` ENUM, `is_regional_gem`, `search_vector` TSVECTOR |
+| `destination_enrichments` | `id`, `city_id` (UNIQUE FK), `description`, `wiki_url`, `hero_image_url`, `gallery` JSONB, `attractions` JSONB, `weather` JSONB, `budget_estimate` JSONB, `ai_summary`, `source_metadata`, `refreshed_at` |
 | `activities` | `id`, `city_id` (FK), `name`, `category`, `trip_type_tags[]`, `estimated_cost_usd`, `duration_hours` |
 | `stop_activities` | `id`, `stop_id` (FK), `activity_id` (FK), `scheduled_time`, `actual_cost_usd`, `is_completed` |
 | `packing_items` | `id`, `trip_id` (FK), `name`, `category` ENUM, `is_packed`, `ai_suggested` |
@@ -831,6 +903,7 @@ PostgreSQL 16. 3NF normalized schema. All foreign keys enforced at the database 
 ### Key Design Decisions
 
 - `cities.search_vector`: `TSVECTOR` generated column with GIN index — full-text city search with no Algolia dependency.
+- `destination_enrichments`: DB-backed travel intelligence cache for stable dashboard/search/detail content without repeated third-party API calls.
 - `trips.public_slug`: UNIQUE constraint enforces URL uniqueness.
 - `stops.order_index`: indexed for fast `ORDER BY` per trip, updated via bulk reorder endpoint.
 - Budget aggregation: computed server-side via SQL aggregation across `stop_activities` and `stops.accommodation_cost`.
@@ -855,6 +928,14 @@ Seed:
 ```powershell
 npm run prisma:seed
 ```
+
+Destination enrichment:
+
+```powershell
+npm run destinations:enrich
+```
+
+The enrichment script populates `destination_enrichments` from the travel aggregation layer. It refreshes stored descriptions, images, galleries, attractions, weather snapshots, budget estimates, source metadata, and AI summaries. The app reads this stored catalog first and falls back to live providers only when stored enrichment is missing.
 
 ---
 
@@ -932,14 +1013,72 @@ Reset password body:
 
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
-| `GET` | `/api/v1/cities` | No | List and search cities (full-text) |
-| `GET` | `/api/v1/cities/:id` | No | City detail with activities |
+| `GET` | `/api/v1/cities` | No | List and search deduplicated cities with stored enrichment when available |
+| `GET` | `/api/v1/cities/:id` | No | City detail with activities and destination enrichment fields |
 
 Query params: `q`, `country`, `region`, `costIndex`, `page`, `limit`
 
 ```
 GET /api/v1/cities?q=delhi&page=1&limit=20
 ```
+
+### Destination Intelligence
+
+| Method | Path | Auth | Description |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/destinations/trending` | No | Trending deduplicated destinations for dashboard Explore cards |
+| `GET` | `/api/v1/destination/:name` | No | Normalized destination intelligence by city/name |
+| `GET` | `/api/v1/destinations/:cityId/intelligence` | No | Backward-compatible city intelligence endpoint |
+| `GET` | `/api/v1/nearby?lat=&lon=&radiusKm=` | No | Nearby destination recommendations from coordinates |
+| `GET` | `/api/v1/weather/:city` | No | Current or stored weather context for a city |
+| `GET` | `/api/v1/destinations/transport/search` | No | Flight/train/bus transport options with fallback data |
+
+Normalized destination responses include:
+
+```json
+{
+  "name": "Goa",
+  "country": "India",
+  "description": "Destination summary from stored enrichment or Wikipedia.",
+  "image": "https://...",
+  "gallery": ["https://..."],
+  "weather": { "temp": 31, "condition": "Sunny" },
+  "topAttractions": [],
+  "budgetEstimate": { "budget": 8000, "comfort": 16000, "luxury": 36000, "currency": "INR" },
+  "bestSeason": "Nov-Feb",
+  "aiSummary": "Short practical travel intelligence summary.",
+  "sources": {}
+}
+```
+
+Transport query example:
+
+```text
+GET /api/v1/destinations/transport/search?origin=Delhi&destination=Goa&departureDate=2026-06-01&mode=all
+```
+
+### Community Enhancements
+
+| Method | Path | Auth | Description |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/community` | Optional | Community feed with likes, bookmarks, comments, computed summaries, and auto-tags |
+| `POST` | `/api/v1/community/:postId/like` | Yes | Toggle like and return refreshed post state |
+| `POST` | `/api/v1/community/:postId/comments` | Yes | Add a comment and return refreshed post state |
+| `GET` | `/api/v1/community/similar-travelers` | Yes | Suggest travelers with similar profile/style metadata |
+| `GET` | `/api/v1/community/place-chat?cityId=&destinationName=` | Yes | List recent alias-only messages for a destination chat room |
+| `POST` | `/api/v1/community/place-chat` | Yes | Send a message to a destination chat room without exposing personal user info |
+
+Destination chat message body:
+
+```json
+{
+  "cityId": "city-uuid",
+  "destinationName": "Jaipur",
+  "body": "Anyone planning the fort circuit tomorrow morning?"
+}
+```
+
+Destination chat responses intentionally expose only `authorAlias`, `isOwn`, `isSystem`, `destinationName`, `body`, and timestamps. They do not include email addresses, phone numbers, usernames, or contact links. If a destination has no existing messages, Traveloop persists a few generic starter messages under system traveler aliases so rooms never render as empty.
 
 ### Activities
 
@@ -1143,6 +1282,7 @@ State-changing requests (`POST`, `PUT`, `DELETE`) are protected by an origin gua
 
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
+| `POST` | `/api/v1/ai/trip-plan` | Yes | Generate an enriched trip plan using user context plus destination intelligence |
 | `POST` | `/api/v1/ai/itinerary` | Yes | Generate itinerary with Gemini 1.5 Flash or curated fallback |
 | `POST` | `/api/v1/ai/packing` | Yes | Generate packing list by profile + destination season |
 | `POST` | `/api/v1/ai/budget-estimate` | Yes | Per-day budget estimate by vibe |
@@ -1180,6 +1320,8 @@ Budget estimate body:
 ```
 
 If `GEMINI_API_KEY` is missing or Gemini fails, all AI endpoints return curated static fallback data. No endpoint throws a 500 due to AI unavailability.
+
+`/api/v1/ai/trip-plan` extends the itinerary workflow by injecting destination metadata, current/stored weather, attraction data, budget context, user preferences, travel style, interests, and location context before generation.
 
 AI endpoints are rate-limited to **20 requests/hour per authenticated user** to protect Gemini quota.
 

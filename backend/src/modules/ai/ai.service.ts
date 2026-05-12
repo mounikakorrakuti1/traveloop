@@ -5,6 +5,7 @@ import { prisma } from '../../config/prisma';
 import { logger } from '../../utils/logger';
 import type { BudgetEstimateDto, ItineraryDto, PackingSuggestionDto } from './ai.dto';
 import { fallbackBudget, fallbackItinerary, fallbackPacking } from './ai.fallback';
+import { destinationsService } from '../destinations/destinations.service';
 
 const stripMarkdownJson = (value: string): string =>
   value
@@ -120,11 +121,41 @@ export class AiService {
 Traveler type: ${dto.tripType}. Budget style: ${dto.vibe}.
 Include realistic transportation suggestions, hidden gems, and season-aware planning.
 If coordinates exist in context, include nearest practical airports and routes from the current location.
-Return shape: {"stops":[{"city":"string","country":"string","days":1,"estimatedCostUsd":100,"activities":[{"name":"string","category":"sightseeing|food|adventure|cultural","costUsd":10,"durationHours":2}]}]}`;
+Return shape: {"summary":"string","routeStrategy":"string","totalEstimatedCostInr":10000,"transportationOptions":[{"mode":"string","route":"string","estimatedDuration":"string","estimatedCostInr":1000,"bookingTip":"string"}],"hiddenGems":["string"],"nearbyPlaces":["string"],"timingTips":["string"],"stops":[{"city":"string","country":"string","days":1,"estimatedCostUsd":100,"estimatedCostInr":8000,"dailyBreakdown":[{"day":1,"date":null,"baseCity":"string","morning":"string","afternoon":"string","evening":"string","transport":"string","meals":["string"],"estimatedCostInr":2500,"travelTime":"string"}],"activities":[{"name":"string","category":"sightseeing|food|adventure|cultural","costUsd":10,"durationHours":2}],"transportation":[{"mode":"string","route":"string","estimatedDuration":"string","estimatedCostInr":1000}],"staySuggestions":[{"area":"string","type":"string","nightlyBudgetInr":3000,"why":"string"}],"foodRecommendations":["string"],"localTips":["string"]}]}`;
     try {
       return await this.generateJson<GeneratedItinerary>(SYSTEM_PROMPT, contextualMemory, userQuery);
     } catch (error) {
       logger.warn('Gemini itinerary fallback used', { error: error instanceof Error ? error.message : error });
+      return fallbackItinerary(dto);
+    }
+  }
+
+  public async tripPlan(userId: string, dto: ItineraryDto): Promise<GeneratedItinerary> {
+    const contextualMemory = await this.buildContextualMemory(userId, dto.userContext);
+    const destinationHint = dto.preferences?.destination ?? dto.prompt.split(/[,.]/)[0]?.trim() ?? dto.prompt;
+    let destinationContext = '{}';
+    try {
+      destinationContext = JSON.stringify(await destinationsService.getByName(destinationHint), null, 2);
+    } catch (error) {
+      logger.warn('Destination enrichment unavailable for AI trip plan', {
+        error: error instanceof Error ? error.message : error
+      });
+    }
+
+    const userQuery = `Create a realistic ${dto.days}-day trip plan for "${dto.prompt}".
+Traveler type: ${dto.tripType}. Budget style: ${dto.vibe}.
+Planner inputs:
+${JSON.stringify(dto.preferences ?? {}, null, 2)}
+Use this live destination intelligence when relevant:
+${destinationContext}
+Return practical daily routing with morning/afternoon/evening sequencing, realistic INR budgets, hidden gems, stay areas, transport suggestions, food recommendations, route timing, and nearby experiences.
+If budgetInr exists, keep the total estimate inside or explain tradeoffs in timingTips.
+Return shape: {"summary":"string","routeStrategy":"string","totalEstimatedCostInr":10000,"transportationOptions":[{"mode":"string","route":"string","estimatedDuration":"string","estimatedCostInr":1000,"bookingTip":"string"}],"staySuggestions":[{"area":"string","type":"string","nightlyBudgetInr":3000,"why":"string"}],"hiddenGems":["string"],"nearbyPlaces":["string"],"timingTips":["string"],"stops":[{"city":"string","country":"string","days":1,"estimatedCostUsd":100,"estimatedCostInr":8000,"dailyBreakdown":[{"day":1,"date":"YYYY-MM-DD or null","baseCity":"string","morning":"string","afternoon":"string","evening":"string","transport":"string","meals":["string"],"estimatedCostInr":2500,"travelTime":"string"}],"activities":[{"name":"string","category":"sightseeing|food|adventure|cultural","costUsd":10,"durationHours":2}],"transportation":[{"mode":"string","route":"string","estimatedDuration":"string","estimatedCostInr":1000,"bookingTip":"string"}],"staySuggestions":[{"area":"string","type":"string","nightlyBudgetInr":3000,"why":"string"}],"foodRecommendations":["string"],"localTips":["string"]}]}`;
+
+    try {
+      return await this.generateJson<GeneratedItinerary>(SYSTEM_PROMPT, contextualMemory, userQuery);
+    } catch (error) {
+      logger.warn('Gemini trip-plan fallback used', { error: error instanceof Error ? error.message : error });
       return fallbackItinerary(dto);
     }
   }

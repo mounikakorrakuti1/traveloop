@@ -5,7 +5,7 @@ import { getTrip } from "@/api/trips.api";
 import { createStop, deleteStop, listStops } from "@/api/stops.api";
 import { searchActivities, assignActivityToStop, removeActivityFromStop } from "@/api/activities.api";
 import { searchCities } from "@/api/cities.api";
-import { generateItinerary } from "@/api/ai.api";
+import { generateTripPlan } from "@/api/ai.api";
 import { getApiErrorMessage } from "@/api/client";
 import { QUERY_KEYS, ROUTES } from "@/lib/constants";
 import { formatDate, getCityLabel, getStopCity, usd } from "@/lib/format";
@@ -21,6 +21,20 @@ import { useToast } from "@/components/shared/toast-context";
 import "@/styles/components/itinerary.css";
 import "@/styles/components/ui.css";
 import { Calendar, Trash2, Plus, Sparkles, MapPin } from "lucide-react";
+
+const daysBetweenInclusive = (start, end, fallback) => {
+  const startDate = start ? new Date(start) : null;
+  const endDate = end ? new Date(end) : null;
+  if (!startDate || !endDate || Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return fallback;
+  return Math.max(1, Math.round((endDate - startDate) / 86400000) + 1);
+};
+
+const extractDestination = (trip, stops) => {
+  const lastStop = stops.at(-1);
+  const lastCity = getStopCity(lastStop);
+  if (lastCity?.name) return lastCity.name;
+  return trip?.title || "this destination";
+};
 
 export default function ItineraryBuilderPage() {
   const { id } = useParams();
@@ -109,16 +123,32 @@ export default function ItineraryBuilderPage() {
           },
         }).catch(() => {});
       }
-      return generateItinerary({
-        prompt: `${trip?.title || "Trip"} ${stops.map((stop) => getCityLabel(getStopCity(stop))).join(", ")}`,
-        days: Math.max(1, stops.length || 3),
+      const destination = extractDestination(trip, stops);
+      const stopLabels = stops.map((stop) => getCityLabel(getStopCity(stop))).filter(Boolean);
+      const days = daysBetweenInclusive(trip?.startDate, trip?.endDate, Math.max(1, stops.length || 3));
+      const interests = [trip?.vibe, trip?.tripType, ...stopLabels].filter(Boolean);
+      return generateTripPlan({
+        prompt: `${trip?.title || "Trip"}: ${stopLabels.join(" -> ") || destination}`,
+        days,
         vibe: trip?.vibe || "comfort",
         tripType: trip?.tripType || "solo",
+        preferences: {
+          source: coords ? "current location" : undefined,
+          destination,
+          startDate: trip?.startDate,
+          endDate: trip?.endDate,
+          budgetInr: trip?.budgetCapInr ?? trip?.budgetCapUsd,
+          placesToCover: stopLabels,
+          stayPreference: stops.find((stop) => stop.accommodationName)?.accommodationName || undefined,
+          transportationPreferences: ["flight", "train", "cab"],
+          foodPreference: user?.travelPreferences?.foodPreference,
+        },
         userContext: buildAiContext(user, {
           currentLocation: coords || undefined,
-          interests: [trip?.vibe || "comfort"],
+          interests,
           previousTrips: stops.map((stop) => getCityLabel(getStopCity(stop))).filter(Boolean),
           groupSize: trip?.tripType === "group" ? 4 : 1,
+          foodPreference: user?.travelPreferences?.foodPreference,
         }),
       });
     },
@@ -170,7 +200,7 @@ export default function ItineraryBuilderPage() {
           <div className="input-wrap"><label className="input-label">Arrival</label><input className="input" type="date" value={form.arrivalDate} onChange={(e) => setForm((f) => ({ ...f, arrivalDate: e.target.value }))} /></div>
           <div className="input-wrap"><label className="input-label">Departure</label><input className="input" type="date" min={form.arrivalDate} value={form.departureDate} onChange={(e) => setForm((f) => ({ ...f, departureDate: e.target.value }))} /></div>
           <div className="input-wrap"><label className="input-label">Accommodation</label><input className="input" value={form.accommodationName} onChange={(e) => setForm((f) => ({ ...f, accommodationName: e.target.value }))} /></div>
-          <div className="input-wrap"><label className="input-label">Cost ₹</label><input className="input" type="number" min="0" value={form.accommodationCost} onChange={(e) => setForm((f) => ({ ...f, accommodationCost: e.target.value }))} /></div>
+          <div className="input-wrap"><label className="input-label">Cost INR</label><input className="input" type="number" min="0" value={form.accommodationCost} onChange={(e) => setForm((f) => ({ ...f, accommodationCost: e.target.value }))} /></div>
         </div>
         <textarea className="input" rows={3} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Stop notes" />
         <button className="btn btn-primary" disabled={addStopMutation.isPending}><Plus size={16} /> Add Stop</button>
@@ -179,15 +209,25 @@ export default function ItineraryBuilderPage() {
       {!aiMutation.isPending && aiMutation.data?.stops?.length > 0 && (
         <div className="card ai-result-card">
           <h3 className="note-card-title">AI itinerary ideas</h3>
+          {aiMutation.data.summary && <p style={{ color: "var(--cl-text-muted)" }}>{aiMutation.data.summary}</p>}
+          {aiMutation.data.routeStrategy && <p><strong>Route:</strong> {aiMutation.data.routeStrategy}</p>}
+          {aiMutation.data.totalEstimatedCostInr && <p><strong>Estimated total:</strong> {usd(aiMutation.data.totalEstimatedCostInr)}</p>}
           <div className="ai-idea-grid">
             {aiMutation.data.stops.map((stop, index) => (
               <div key={`${stop.city}-${index}`} className="ai-idea-item">
                 <div className="ai-idea-kicker">{stop.days} day{stop.days === 1 ? "" : "s"}</div>
                 <strong>{stop.city}, {stop.country}</strong>
-                <p>{stop.activities?.map((a) => a.name).join(", ")}</p>
+                <p>{stop.dailyBreakdown?.[0]?.morning || stop.activities?.map((a) => a.name).join(", ")}</p>
+                {stop.estimatedCostInr && <p><strong>{usd(stop.estimatedCostInr)}</strong></p>}
+                {stop.foodRecommendations?.length > 0 && <p>{stop.foodRecommendations.slice(0, 2).join(", ")}</p>}
               </div>
             ))}
           </div>
+          {aiMutation.data.timingTips?.length > 0 && (
+            <div className="post-tags" style={{ marginTop: "var(--sp-md)" }}>
+              {aiMutation.data.timingTips.slice(0, 3).map((tip) => <span key={tip}>{tip}</span>)}
+            </div>
+          )}
         </div>
       )}
 

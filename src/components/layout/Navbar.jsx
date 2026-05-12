@@ -13,7 +13,7 @@ import "@/styles/components/navbar.css";
 const navLinks = [
   { label: "Dashboard", to: ROUTES.home,      icon: <Home size={18} /> },
   { label: "My Trips",  to: ROUTES.trips,     icon: <Map size={18} /> },
-  { label: "Cities",    to: ROUTES.cities,    icon: <Building2 size={18} /> },
+  { label: "Explore",   to: ROUTES.cities,    icon: <Building2 size={18} /> },
   { label: "Search",    to: ROUTES.search,    icon: <Search size={18} /> },
   { label: "Community", to: ROUTES.community, icon: <Globe size={18} /> },
 ];

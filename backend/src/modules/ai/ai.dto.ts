@@ -29,6 +29,21 @@ const aiUserContextDto = z
   })
   .strict();
 
+const tripPlannerPreferencesDto = z
+  .object({
+    source: z.string().max(120).optional(),
+    destination: z.string().max(160).optional(),
+    startDate: z.string().max(40).optional(),
+    endDate: z.string().max(40).optional(),
+    placesToCover: z.array(z.string().max(120)).max(30).optional(),
+    stayPreference: z.string().max(80).optional(),
+    transportationPreferences: z.array(z.string().max(40)).max(8).optional(),
+    specificDateTimePreferences: z.string().max(500).optional(),
+    foodPreference: z.string().max(80).optional(),
+    budgetInr: z.number().nonnegative().optional()
+  })
+  .strict();
+
 export const itineraryDto = z
   .object({
     prompt: z.string().min(1).max(2000),
@@ -44,6 +59,7 @@ export const itineraryDto = z
       'honeymoon',
       'business'
     ]),
+    preferences: tripPlannerPreferencesDto.optional(),
     userContext: aiUserContextDto.optional()
   })
   .strict();

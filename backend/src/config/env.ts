@@ -31,6 +31,8 @@ const envSchema = z
   GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
   UNSPLASH_ACCESS_KEY: z.string().optional(),
   OPENTRIPMAP_API_KEY: z.string().optional(),
+  OPENWEATHER_API_KEY: z.string().optional(),
+  GEODB_API_KEY: z.string().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),

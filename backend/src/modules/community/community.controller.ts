@@ -4,7 +4,9 @@ import { communityService } from './community.service';
 import type {
   AddCommunityCommentDto,
   CreateCommunityPostDto,
-  ListCommunityQueryDto
+  ListCommunityQueryDto,
+  PlaceChatQueryDto,
+  SendPlaceChatMessageDto
 } from './community.dto';
 
 export class CommunityController {
@@ -55,6 +57,35 @@ export class CommunityController {
       const { postId } = req.params as { postId: string };
       const post = await communityService.addComment(postId, req.user.id, req.body as AddCommunityCommentDto);
       res.status(200).json({ data: post, meta: null });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public similarTravelers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.user) throw new AppError('Authentication required', 'UNAUTHORIZED', 401);
+      const travelers = await communityService.similarTravelers(req.user.id);
+      res.status(200).json({ data: travelers, meta: null });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public listPlaceMessages = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const messages = await communityService.listPlaceMessages(req.query as unknown as PlaceChatQueryDto, req.user?.id);
+      res.status(200).json({ data: messages, meta: null });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public sendPlaceMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.user) throw new AppError('Authentication required', 'UNAUTHORIZED', 401);
+      const message = await communityService.sendPlaceMessage(req.user.id, req.body as SendPlaceChatMessageDto);
+      res.status(201).json({ data: message, meta: null });
     } catch (error) {
       next(error);
     }

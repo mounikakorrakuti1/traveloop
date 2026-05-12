@@ -1,93 +1,218 @@
-import { env } from '../../config/env';
+import type { City as PrismaCity } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError } from '../../middleware/error-handler';
-import type { TransportSearchQueryDto } from './destinations.dto';
+import { cacheTtl, getCached, setCached } from '../../services/travel/cache';
+import { fallbackBudget, fallbackWeather } from '../../services/travel/fallbacks';
+import {
+  geoDbClient,
+  openTripMapClient,
+  openWeatherClient,
+  unsplashClient,
+  wikipediaClient
+} from '../../services/travel/external-apis';
+import type { NearbyQueryDto, TransportSearchQueryDto } from './destinations.dto';
 
-type CacheItem<T> = { expiresAt: number; value: T };
-const cache = new Map<string, CacheItem<unknown>>();
-
-const getCached = <T>(key: string): T | null => {
-  const item = cache.get(key);
-  if (!item || item.expiresAt < Date.now()) return null;
-  return item.value as T;
+type Coordinates = { latitude: number; longitude: number };
+type JsonValue = unknown;
+type DestinationEnrichment = {
+  cityId: string;
+  description: string | null;
+  wikiUrl: string | null;
+  heroImageUrl: string | null;
+  gallery: JsonValue | null;
+  attractions: JsonValue | null;
+  weather: JsonValue | null;
+  budgetEstimate: JsonValue | null;
+  aiSummary: string | null;
+  sourceMetadata: JsonValue | null;
 };
-const setCached = <T>(key: string, value: T, ttlMs: number): T => {
-  cache.set(key, { value, expiresAt: Date.now() + ttlMs });
-  return value;
-};
-
-/** Stable Unsplash CDN URLs (source.unsplash.com is retired/unreliable). */
-const FALLBACK_DESTINATION_IMAGES = [
-  'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1600&q=80',
-  'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600&q=80',
-  'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1600&q=80',
-  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=80',
-  'https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=1600&q=80',
-  'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&q=80'
-] as const;
-
-const hashSeed = (value: string): number =>
-  Math.abs(value.split('').reduce((h, ch) => ch.charCodeAt(0) + ((h << 5) - h), 0));
-
-const fallbackGallery = (city: string): string[] => {
-  const start = hashSeed(city.toLowerCase()) % FALLBACK_DESTINATION_IMAGES.length;
-  const out: string[] = [];
-  for (let i = 0; i < FALLBACK_DESTINATION_IMAGES.length; i += 1) {
-    out.push(FALLBACK_DESTINATION_IMAGES[(start + i) % FALLBACK_DESTINATION_IMAGES.length] ?? '');
-  }
-  return out;
-};
+type CityWithEnrichment = PrismaCity & { destinationEnrichment?: DestinationEnrichment | null };
+type Attraction = { name: string; category: string; latitude: number | null; longitude: number | null; xid: string | null };
 
 const parseMonthRange = (bestSeason?: string | null): string =>
   bestSeason && bestSeason.length > 0 ? bestSeason : 'October to March';
 
-export class DestinationsService {
-  public async getIntelligence(cityId: string) {
-    const city = await prisma.city.findUnique({ where: { id: cityId } });
-    if (!city) throw new AppError('Destination not found', 'NOT_FOUND', 404);
+const toRad = (value: number): number => (value * Math.PI) / 180;
+const distanceKm = (a: Coordinates, b: Coordinates): number => {
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLon = toRad(b.longitude - a.longitude);
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.latitude)) * Math.cos(toRad(b.latitude)) * Math.sin(dLon / 2) ** 2;
+  return 6371 * (2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x)));
+};
 
-    const cacheKey = `city-intel:${city.id}`;
+const cityCoordinates = (city: PrismaCity): Coordinates => ({
+  latitude: Number(city.latitude),
+  longitude: Number(city.longitude)
+});
+
+const cityDedupeKey = (city: PrismaCity): string =>
+  [city.name, city.state, city.country]
+    .filter(Boolean)
+    .map((value) => String(value).trim().toLowerCase())
+    .join('|');
+
+const uniqueCities = <T extends PrismaCity>(cities: T[]): T[] => {
+  const seen = new Set<string>();
+  return cities.filter((city) => {
+    const key = cityDedupeKey(city);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+export class DestinationsService {
+  public async trending() {
+    const cacheKey = 'destinations:trending';
     const cached = getCached<unknown>(cacheKey);
     if (cached) return cached;
 
-    const query = `${city.name}, ${city.country}`;
-    const imageData = await this.fetchImageSet(query);
-    const places = await this.fetchPlaces(query);
-    const weather = this.estimateWeather(city.bestSeason ?? undefined);
+    const cities = await prisma.city.findMany({
+      take: 8,
+      orderBy: [{ isRegionalGem: 'desc' }, { name: 'asc' }]
+    });
+    const unique = uniqueCities(cities);
+    const enrichments = await this.getEnrichmentMap(unique.map((city) => city.id));
+
+    const data = await Promise.all(
+      unique.map((city) =>
+        this.normalizedFromCity({ ...city, destinationEnrichment: enrichments.get(city.id) ?? null }, { light: true })
+      )
+    );
+    return setCached(cacheKey, data, cacheTtl.medium);
+  }
+
+  public async getByName(name: string) {
+    const cacheKey = `destination:name:${name.toLowerCase()}`;
+    const cached = getCached<unknown>(cacheKey);
+    if (cached) return cached;
+
+    const city = await prisma.city.findFirst({
+      where: {
+        OR: [
+          { name: { equals: name, mode: 'insensitive' } },
+          { name: { contains: name, mode: 'insensitive' } }
+        ]
+      }
+    });
+
+    if (city) {
+      const enrichment = await this.getEnrichment(city.id);
+      return setCached(cacheKey, await this.normalizedFromCity({ ...city, destinationEnrichment: enrichment }), cacheTtl.medium);
+    }
+
+    const geo = await geoDbClient.city(name);
+    const coords = geo ? { latitude: geo.latitude, longitude: geo.longitude } : undefined;
+    const [wiki, images, weather, attractions] = await Promise.all([
+      wikipediaClient.summary(name),
+      unsplashClient.images(name),
+      openWeatherClient.current(name, coords),
+      openTripMapClient.attractions(name, coords)
+    ]);
 
     return setCached(
       cacheKey,
       {
-        city: {
-          id: city.id,
-          name: city.name,
-          country: city.country,
-          state: city.state,
-          bestSeason: city.bestSeason
-        },
-        heroImage: imageData.heroImage,
-        gallery: imageData.gallery,
-        famousPlaces: places.famousPlaces,
-        landmarks: places.landmarks,
-        restaurants: places.restaurants,
-        cafes: places.cafes,
-        hiddenGems: places.hiddenGems,
+        id: null,
+        name: geo?.name ?? name,
+        country: geo?.country ?? 'Unknown',
+        state: geo?.region ?? null,
+        coordinates: coords ?? null,
+        description: wiki.description ?? `A travel destination profile for ${name}, enriched from available public sources.`,
+        image: images.image,
+        gallery: images.gallery,
         weather,
-        bestTimeToVisit: parseMonthRange(city.bestSeason),
-        estimatedBudgetInr: this.estimateBudget(city.costIndex ?? 'medium'),
-        safetyTips: [
-          'Prefer registered cabs after 9 PM and keep hotel contact pinned.',
-          'Store a digital copy of ID and bookings in your trip documents.',
-          'Carry UPI and one backup card, especially for hill/coastal transfers.'
-        ],
-        transportationTips: [
-          'For intercity routes, compare flight and overnight train options.',
-          'Book airport or station transfer 12-24 hours ahead in peak season.',
-          'Start day trips early to avoid traffic and attraction queues.'
-        ]
+        topAttractions: attractions,
+        budgetEstimate: fallbackBudget(),
+        bestSeason: 'Year-round, confirm weather before booking',
+        aiSummary: this.buildAiSummary(name, weather.condition, attractions.map((item) => item.name)),
+        sources: {
+          description: wiki.url ? 'wikipedia' : 'fallback',
+          images: images.source,
+          weather: weather.source,
+          attractions: attractions.some((item) => item.xid) ? 'opentripmap' : 'fallback'
+        }
       },
-      1000 * 60 * 30
+      cacheTtl.medium
     );
+  }
+
+  public async weather(city: string) {
+    const dbCity = await prisma.city.findFirst({
+      where: { name: { equals: city, mode: 'insensitive' } }
+    });
+    const enrichment = dbCity ? await this.getEnrichment(dbCity.id) : null;
+    if (enrichment?.weather) {
+      return enrichment.weather;
+    }
+    return openWeatherClient.current(city, dbCity ? cityCoordinates(dbCity) : undefined, dbCity?.bestSeason);
+  }
+
+  public async nearby(query: NearbyQueryDto) {
+    const origin = { latitude: query.lat, longitude: query.lon };
+    const cities = await prisma.city.findMany({ take: 500 });
+    const unique = uniqueCities(cities);
+    const enrichments = await this.getEnrichmentMap(unique.map((city) => city.id));
+    const nearbyCities = unique
+      .map((city) => ({ city, km: distanceKm(origin, cityCoordinates(city)) }))
+      .filter((item) => item.km <= query.radiusKm)
+      .sort((a, b) => a.km - b.km)
+      .slice(0, 8);
+
+    const normalized = await Promise.all(
+      nearbyCities.map(async ({ city, km }) => ({
+        ...(await this.normalizedFromCity({ ...city, destinationEnrichment: enrichments.get(city.id) ?? null }, { light: true })),
+        distanceKm: Math.round(km)
+      }))
+    );
+    return { origin, radiusKm: query.radiusKm, destinations: normalized };
+  }
+
+  public async getIntelligence(cityId: string) {
+    const city = await prisma.city.findUnique({ where: { id: cityId } });
+    if (!city) throw new AppError('Destination not found', 'NOT_FOUND', 404);
+
+    const normalized = await this.normalizedFromCity({ ...city, destinationEnrichment: await this.getEnrichment(city.id) });
+    return {
+      city: {
+        id: city.id,
+        name: city.name,
+        country: city.country,
+        state: city.state,
+        bestSeason: city.bestSeason
+      },
+      heroImage: normalized.image,
+      gallery: normalized.gallery,
+      famousPlaces: normalized.topAttractions.map((item) => item.name).slice(0, 5),
+      landmarks: normalized.topAttractions.filter((item) => item.category.includes('historic')).map((item) => item.name),
+      restaurants: ['Local thali house', 'Chef tasting restaurant', 'Rooftop dinner spot'],
+      cafes: ['Specialty coffee bar', 'Artisan bakery cafe', 'Work-friendly cafe'],
+      hiddenGems: normalized.topAttractions.slice(3, 6).map((item) => item.name),
+      weather: {
+        summary: normalized.weather.condition,
+        avgTempC: String(normalized.weather.temp),
+        rainChance: normalized.weather.humidity ? `${normalized.weather.humidity}% humidity` : 'Check forecast'
+      },
+      bestTimeToVisit: normalized.bestSeason,
+      estimatedBudgetInr: {
+        budget: normalized.budgetEstimate.budget,
+        comfort: normalized.budgetEstimate.comfort,
+        premium: normalized.budgetEstimate.luxury
+      },
+      safetyTips: [
+        'Prefer registered cabs after 9 PM and keep hotel contact pinned.',
+        'Store a digital copy of ID and bookings in your trip documents.',
+        'Carry UPI and one backup card, especially for hill/coastal transfers.'
+      ],
+      transportationTips: [
+        'Compare flight, train, and road options before locking dates.',
+        'Book airport or station transfer 12-24 hours ahead in peak season.',
+        'Start day trips early to avoid traffic and attraction queues.'
+      ],
+      normalized
+    };
   }
 
   public async searchTransport(query: TransportSearchQueryDto) {
@@ -96,69 +221,144 @@ export class DestinationsService {
     if (cached) return cached;
 
     const fallback = this.generateFallbackTransport(query);
-    return setCached(cacheKey, { options: fallback, provider: 'fallback-demo' }, 1000 * 60 * 10);
+    return setCached(cacheKey, { options: fallback, provider: 'fallback-demo' }, cacheTtl.short);
   }
 
-  private async fetchImageSet(query: string): Promise<{ heroImage: string; gallery: string[] }> {
-    const fallback = fallbackGallery(query);
-    if (!env.UNSPLASH_ACCESS_KEY) return { heroImage: fallback[0] ?? '', gallery: fallback };
+  public async refreshStoredEnrichment(cityId: string) {
+    const city = await prisma.city.findUnique({ where: { id: cityId } });
+    if (!city) throw new AppError('Destination not found', 'NOT_FOUND', 404);
+    const normalized = await this.normalizedFromCity(city, { forceLive: true });
+    await prisma.$executeRaw`
+      INSERT INTO destination_enrichments (
+        city_id, description, hero_image_url, gallery, attractions, weather, budget_estimate, ai_summary, source_metadata, refreshed_at, updated_at
+      )
+      VALUES (
+        ${city.id}::uuid,
+        ${normalized.description},
+        ${normalized.image},
+        ${JSON.stringify(normalized.gallery)}::jsonb,
+        ${JSON.stringify(normalized.topAttractions)}::jsonb,
+        ${JSON.stringify(normalized.weather)}::jsonb,
+        ${JSON.stringify(normalized.budgetEstimate)}::jsonb,
+        ${normalized.aiSummary},
+        ${JSON.stringify(normalized.sources)}::jsonb,
+        NOW(),
+        NOW()
+      )
+      ON CONFLICT (city_id) DO UPDATE SET
+        description = EXCLUDED.description,
+        hero_image_url = EXCLUDED.hero_image_url,
+        gallery = EXCLUDED.gallery,
+        attractions = EXCLUDED.attractions,
+        weather = EXCLUDED.weather,
+        budget_estimate = EXCLUDED.budget_estimate,
+        ai_summary = EXCLUDED.ai_summary,
+        source_metadata = EXCLUDED.source_metadata,
+        refreshed_at = NOW(),
+        updated_at = NOW()
+    `;
+    return normalized;
+  }
+
+  private async getEnrichment(cityId: string): Promise<DestinationEnrichment | null> {
+    const rows = await this.getEnrichments([cityId]);
+    return rows[0] ?? null;
+  }
+
+  private async getEnrichmentMap(cityIds: string[]): Promise<Map<string, DestinationEnrichment>> {
+    const rows = await this.getEnrichments(cityIds);
+    return new Map(rows.map((row) => [row.cityId, row]));
+  }
+
+  private async getEnrichments(cityIds: string[]): Promise<DestinationEnrichment[]> {
+    if (cityIds.length === 0) return [];
     try {
-      const url = new URL('https://api.unsplash.com/search/photos');
-      url.searchParams.set('query', query);
-      url.searchParams.set('per_page', '6');
-      url.searchParams.set('orientation', 'landscape');
-      const res = await fetch(url.toString(), {
-        headers: { Authorization: `Client-ID ${env.UNSPLASH_ACCESS_KEY}` }
-      });
-      if (!res.ok) return { heroImage: fallback[0] ?? '', gallery: fallback };
-      const payload = (await res.json()) as { results?: Array<{ urls?: { regular?: string } }> };
-      const urls = (payload.results ?? [])
-        .map((item) => item.urls?.regular)
-        .filter((item): item is string => Boolean(item));
-      if (urls.length === 0) return { heroImage: fallback[0] ?? '', gallery: fallback };
-      return { heroImage: urls[0] ?? fallback[0] ?? '', gallery: urls };
+      return await prisma.$queryRaw<DestinationEnrichment[]>`
+        SELECT
+          city_id AS "cityId",
+          description,
+          wiki_url AS "wikiUrl",
+          hero_image_url AS "heroImageUrl",
+          gallery,
+          attractions,
+          weather,
+          budget_estimate AS "budgetEstimate",
+          ai_summary AS "aiSummary",
+          source_metadata AS "sourceMetadata"
+        FROM destination_enrichments
+        WHERE city_id = ANY(${cityIds}::uuid[])
+      `;
     } catch {
-      return { heroImage: fallback[0] ?? '', gallery: fallback };
+      return [];
     }
   }
 
-  private async fetchPlaces(query: string) {
-    const fallback = {
-      famousPlaces: ['Heritage quarter', 'Main viewpoint', 'Old market district'],
-      landmarks: ['City fort', 'Waterfront promenade', 'Iconic temple/church'],
-      restaurants: ['Local thali house', 'Chef tasting restaurant', 'Rooftop dinner spot'],
-      cafes: ['Specialty coffee bar', 'Artisan bakery cafe', 'Work-friendly cafe'],
-      hiddenGems: ['Sunrise lookout', 'Neighborhood food lane', 'Crafts street']
+  private async normalizedFromCity(city: CityWithEnrichment, options?: { light?: boolean; forceLive?: boolean }) {
+    const coords = cityCoordinates(city);
+    const query = `${city.name}, ${city.country}`;
+    const stored = options?.forceLive ? null : city.destinationEnrichment;
+    const storedGallery = jsonArray<string>(stored?.gallery);
+    const storedAttractions = jsonArray<Attraction>(stored?.attractions);
+    const storedWeather = jsonObject<Awaited<ReturnType<typeof openWeatherClient.current>>>(stored?.weather);
+    const storedBudget = jsonObject<ReturnType<typeof fallbackBudget>>(stored?.budgetEstimate);
+    if (stored && options?.light) {
+      return {
+        id: city.id,
+        name: city.name,
+        country: city.country,
+        state: city.state,
+        coordinates: coords,
+        description: stored.description ?? `${city.name} is a ${city.areaType ?? 'travel'} destination in ${city.country}.`,
+        image: stored.heroImageUrl || city.thumbnailUrl || '',
+        gallery: storedGallery.length > 0 ? storedGallery : [stored.heroImageUrl || city.thumbnailUrl || ''].filter(Boolean),
+        weather: storedWeather ?? fallbackWeather(city.bestSeason),
+        topAttractions: storedAttractions,
+        budgetEstimate: storedBudget ?? fallbackBudget(city.costIndex),
+        bestSeason: parseMonthRange(city.bestSeason),
+        aiSummary: stored.aiSummary ?? this.buildAiSummary(city.name, (storedWeather ?? fallbackWeather(city.bestSeason)).condition, storedAttractions.map((item) => item.name)),
+        sources: jsonObject<Record<string, string>>(stored.sourceMetadata) ?? {
+          description: stored.description ? 'stored' : 'database',
+          images: stored.heroImageUrl ? 'stored' : 'fallback',
+          weather: storedWeather ? 'stored' : 'seasonal-fallback',
+          attractions: storedAttractions.length > 0 ? 'stored' : 'fallback'
+        }
+      };
+    }
+
+    const [wiki, images, weather, attractions] = await Promise.all([
+      stored?.description ? Promise.resolve({ description: stored.description, url: stored.wikiUrl }) : options?.light ? Promise.resolve({ description: null, url: null }) : wikipediaClient.summary(city.name),
+      stored?.heroImageUrl ? Promise.resolve({ image: stored.heroImageUrl, gallery: storedGallery, source: 'stored' }) : unsplashClient.images(query),
+      storedWeather ? Promise.resolve(storedWeather) : openWeatherClient.current(city.name, coords, city.bestSeason),
+      storedAttractions.length > 0 ? Promise.resolve(storedAttractions) : options?.light ? Promise.resolve([]) : openTripMapClient.attractions(city.name, coords)
+    ]);
+    const topAttractions = attractions.length > 0 ? attractions : await openTripMapClient.attractions(city.name, coords);
+
+    return {
+      id: city.id,
+      name: city.name,
+      country: city.country,
+      state: city.state,
+      coordinates: coords,
+      description: wiki.description ?? `${city.name} is a ${city.areaType ?? 'travel'} destination in ${city.country}.`,
+      image: images.image || city.thumbnailUrl || '',
+      gallery: images.gallery,
+      weather,
+      topAttractions,
+      budgetEstimate: storedBudget ?? fallbackBudget(city.costIndex),
+      bestSeason: parseMonthRange(city.bestSeason),
+      aiSummary: this.buildAiSummary(city.name, weather.condition, topAttractions.map((item) => item.name)),
+      sources: {
+        description: stored?.description ? 'stored' : wiki.url ? 'wikipedia' : 'database',
+        images: images.source,
+        weather: weather.source ?? fallbackWeather(city.bestSeason).source,
+        attractions: topAttractions.some((item) => item.xid) ? 'opentripmap' : 'fallback'
+      }
     };
-    if (!env.OPENTRIPMAP_API_KEY) return fallback;
-    try {
-      const url = new URL('https://api.opentripmap.com/0.1/en/places/geoname');
-      const city = query.split(',')[0]?.trim() ?? query;
-      url.searchParams.set('name', city);
-      url.searchParams.set('apikey', env.OPENTRIPMAP_API_KEY);
-      const geo = await fetch(url.toString());
-      if (!geo.ok) return fallback;
-      return fallback;
-    } catch {
-      return fallback;
-    }
   }
 
-  private estimateWeather(bestSeason?: string) {
-    const season = bestSeason?.toLowerCase() ?? '';
-    if (season.includes('dec') || season.includes('jan')) {
-      return { summary: 'Cool and crisp with clear mornings.', avgTempC: '10-22', rainChance: 'Low' };
-    }
-    if (season.includes('jun') || season.includes('monsoon')) {
-      return { summary: 'Humid with frequent showers.', avgTempC: '22-31', rainChance: 'High' };
-    }
-    return { summary: 'Pleasant travel weather for city exploration.', avgTempC: '18-30', rainChance: 'Medium' };
-  }
-
-  private estimateBudget(costIndex: string) {
-    if (costIndex === 'high') return { budget: 14000, comfort: 22000, premium: 36000 };
-    if (costIndex === 'low') return { budget: 3500, comfort: 8000, premium: 18000 };
-    return { budget: 6000, comfort: 12000, premium: 24000 };
+  private buildAiSummary(name: string, weatherCondition: string, attractionNames: string[]) {
+    const attractions = attractionNames.slice(0, 3).join(', ') || 'local neighborhoods';
+    return `${name} is currently best approached with ${weatherCondition.toLowerCase()} in mind. Prioritize ${attractions}, then leave room for food walks and slower local experiences.`;
   }
 
   private generateFallbackTransport(query: TransportSearchQueryDto) {
@@ -182,5 +382,10 @@ export class DestinationsService {
     });
   }
 }
+
+const jsonArray = <T>(value: JsonValue | null | undefined): T[] => (Array.isArray(value) ? (value as T[]) : []);
+
+const jsonObject = <T>(value: JsonValue | null | undefined): T | null =>
+  value && !Array.isArray(value) && typeof value === 'object' ? (value as T) : null;
 
 export const destinationsService = new DestinationsService();

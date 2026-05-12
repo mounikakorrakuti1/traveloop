@@ -182,6 +182,14 @@ export interface MediaUpload {
 
 export interface GeneratedItinerary {
   stops: GeneratedStop[];
+  summary?: string;
+  totalEstimatedCostInr?: number;
+  routeStrategy?: string;
+  transportationOptions?: GeneratedTransportOption[];
+  staySuggestions?: GeneratedStaySuggestion[];
+  hiddenGems?: string[];
+  nearbyPlaces?: string[];
+  timingTips?: string[];
 }
 
 export interface GeneratedStop {
@@ -189,7 +197,41 @@ export interface GeneratedStop {
   country: string;
   days: number;
   estimatedCostUsd: number;
+  estimatedCostInr?: number;
+  dailyBreakdown?: GeneratedDayPlan[];
   activities: { name: string; category: string; costUsd: number; durationHours: number }[];
+  transportation?: GeneratedTransportOption[];
+  staySuggestions?: GeneratedStaySuggestion[];
+  foodRecommendations?: string[];
+  localTips?: string[];
+}
+
+export interface GeneratedDayPlan {
+  day: number;
+  date?: string | null;
+  baseCity: string;
+  morning: string;
+  afternoon: string;
+  evening: string;
+  transport: string;
+  meals: string[];
+  estimatedCostInr: number;
+  travelTime: string;
+}
+
+export interface GeneratedTransportOption {
+  mode: string;
+  route: string;
+  estimatedDuration: string;
+  estimatedCostInr: number;
+  bookingTip?: string;
+}
+
+export interface GeneratedStaySuggestion {
+  area: string;
+  type: string;
+  nightlyBudgetInr: number;
+  why: string;
 }
 
 export interface PackingList {
