@@ -196,6 +196,12 @@
   padding-right: var(--sp-xs);
 }
 
+.create-trip-adsense-slot {
+  min-height: 280px;
+  min-width: 250px;
+  max-width: 100%;
+}
+
 .mock-google-ad {
   background: var(--cl-bg-alt);
   border: 1px solid var(--cl-border);

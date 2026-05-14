@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { createTrip } from "@/api/trips.api";
 import { getApiErrorMessage } from "@/api/client";
+import GoogleAdSenseUnit from "@/components/ads/GoogleAdSenseUnit";
+import {
+  ADSENSE_CREATE_TRIP_FORMAT,
+  ADSENSE_CREATE_TRIP_SLOT,
+  isCreateTripAdSenseConfigured,
+} from "@/lib/adsense";
 import { ROUTES } from "@/lib/constants";
 import { inrToUsd } from "@/lib/currency";
 import "@/styles/components/ui.css";
@@ -20,7 +26,11 @@ const MOCK_ADS = [
 export default function CreateTripPage() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
-  const [ads] = useState(() => [...MOCK_ADS].sort(() => 0.5 - Math.random()).slice(0, 3));
+  const showAdSense = isCreateTripAdSenseConfigured();
+  const mockAds = useMemo(
+    () => (!showAdSense ? [...MOCK_ADS].sort(() => 0.5 - Math.random()).slice(0, 3) : []),
+    [showAdSense],
+  );
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -150,19 +160,28 @@ export default function CreateTripPage() {
       </div>
 
       <div className="create-trip-right">
-        <div className="google-ads-label">Google Ads</div>
+        <div className="google-ads-label">Advertisement</div>
         <div className="google-ads-container">
-          {ads.map((ad) => (
-            <div key={ad.id} className="mock-google-ad">
-              <div className="mock-ad-tag">{ad.tag}</div>
-              <h3 className="mock-ad-title">{ad.title}</h3>
-              <p className="mock-ad-desc">{ad.desc}</p>
-              <button className="mock-ad-btn">{ad.cta}</button>
+          {showAdSense ? (
+            <div className="create-trip-adsense-slot">
+              <GoogleAdSenseUnit
+                adSlot={ADSENSE_CREATE_TRIP_SLOT}
+                adFormat={ADSENSE_CREATE_TRIP_FORMAT}
+              />
             </div>
-          ))}
-          <div className="mock-ad-footer">
-            Ads by Google
-          </div>
+          ) : (
+            <>
+              {mockAds.map((ad) => (
+                <div key={ad.id} className="mock-google-ad">
+                  <div className="mock-ad-tag">{ad.tag}</div>
+                  <h3 className="mock-ad-title">{ad.title}</h3>
+                  <p className="mock-ad-desc">{ad.desc}</p>
+                  <button type="button" className="mock-ad-btn">{ad.cta}</button>
+                </div>
+              ))}
+              <div className="mock-ad-footer">Sample placements (set AdSense env to show live ads)</div>
+            </>
+          )}
         </div>
       </div>
     </div>
