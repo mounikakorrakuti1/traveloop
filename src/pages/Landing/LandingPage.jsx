@@ -63,45 +63,34 @@ export default function LandingPage() {
         <section className="landing-hero hero-sticky">
 
 
-          {/* Navbar — dark background */}
-          <div className="landing-navbar landing-navbar-dark">
-            <Link to={ROUTES.landing} className="landing-nav-logo">
-              <span className="landing-logo-text">Travel<Plane size={28} style={{ display: "inline-block", marginInline: "4px", verticalAlign: "middle", color: "var(--cl-accent)" }} />Loop</span>
-            </Link>
+        {/* Navbar — theme aware */}
+        <div className="landing-navbar landing-navbar-hero">
+          <Link to={ROUTES.landing} className="landing-nav-logo">
+            <span className="landing-logo-text">Travel<Plane size={28} style={{ display: "inline-block", marginInline: "4px", verticalAlign: "middle", color: "var(--cl-accent)" }} />Loop</span>
+          </Link>
 
-            <div className="landing-nav-links">
-              <a href="#features" className="landing-nav-link">Features</a>
-              <a href="#how-it-works" className="landing-nav-link">How it works</a>
-              <a href="#destinations" className="landing-nav-link">Destinations</a>
-            </div>
-
-            <div className="landing-nav-actions">
-              <button
-                onClick={toggleTheme}
-                style={{
-                  background: "rgba(17, 24, 39, 0.08)",
-                  border: "1px solid rgba(17, 24, 39, 0.15)",
-                  color: "#111827",
-                  borderRadius: "var(--br-md)",
-                  width: "2.25rem",
-                  height: "2.25rem",
-                  display: "grid",
-                  placeItems: "center",
-                  cursor: "pointer",
-                  fontSize: "1rem",
-                }}
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-              </button>
-              <Link to={ROUTES.login} className="btn btn-ghost btn-sm" style={{ color: "rgba(17, 24, 39, 0.75)" }}>
-                Sign In
-              </Link>
-              <Link to={ROUTES.signup} className="btn btn-primary btn-sm">
-                Sign Up →
-              </Link>
-            </div>
+          <div className="landing-nav-links">
+            <a href="#features"      className="landing-nav-link">Features</a>
+            <a href="#how-it-works"  className="landing-nav-link">How it works</a>
+            <a href="#destinations"  className="landing-nav-link">Destinations</a>
           </div>
+
+          <div className="landing-nav-actions">
+            <button
+              onClick={toggleTheme}
+              className="landing-theme-toggle"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <Link to={ROUTES.login} className="btn btn-ghost btn-sm" style={{ color: "var(--cl-text-muted)" }}>
+              Sign In
+            </Link>
+            <Link to={ROUTES.signup} className="btn btn-primary btn-sm">
+              Sign Up →
+            </Link>
+          </div>
+        </div>
 
           {/* Canvas frame-sequence background */}
           <div className="hero-canvas-bg">

@@ -270,11 +270,15 @@
 }
 
 /* Transparent navbar for hero overlay */
-.landing-navbar-dark {
+.landing-navbar-hero {
   background: transparent;
   border-bottom: none;
   max-width: 100%;
   padding: var(--sp-md) var(--sp-2xl);
+}
+
+[data-theme="dark"] .landing-navbar-hero {
+  background: transparent;
 }
 
 .landing-nav-logo {
@@ -303,8 +307,12 @@
   font-family: var(--font-display);
   font-size: var(--fs-md);
   font-weight: var(--fw-bold);
-  color: #111827;
+  color: var(--cl-text);
   letter-spacing: var(--ls-tight);
+}
+
+[data-theme="dark"] .landing-logo-text {
+  color: var(--cl-text-muted);
 }
 
 .landing-nav-links {
@@ -314,23 +322,58 @@
 }
 
 .landing-nav-link {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: rgba(17, 24, 39, 0.7);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--cl-text-muted);
   text-decoration: none;
   padding: var(--sp-xs) var(--sp-md);
   border-radius: var(--br-md);
-  transition: color var(--tr-fast), background var(--tr-fast);
+  transition: all var(--tr-fast);
+}
+
+[data-theme="dark"] .landing-nav-link {
+  color: var(--cl-text-muted);
 }
 .landing-nav-link:hover {
-  color: #111827;
-  background: rgba(17, 24, 39, 0.08);
+  color: var(--cl-accent);
+  background: rgba(61, 64, 91, 0.08);
+}
+
+[data-theme="dark"] .landing-nav-link:hover {
+  color: #F4F1DE;
+  background: rgba(244, 241, 222, 0.15);
 }
 
 .landing-nav-actions {
   display: flex;
   align-items: center;
   gap: var(--sp-sm);
+}
+
+.landing-theme-toggle {
+  background: rgba(61, 64, 91, 0.08);
+  border: 1px solid rgba(61, 64, 91, 0.15);
+  color: #3D405B;
+  border-radius: var(--br-md);
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all var(--tr-fast);
+}
+.landing-theme-toggle:hover {
+  background: rgba(61, 64, 91, 0.12);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .landing-theme-toggle {
+  background: rgba(244, 241, 222, 0.1);
+  border: 1px solid rgba(244, 241, 222, 0.2);
+  color: #F4F1DE;
+}
+[data-theme="dark"] .landing-theme-toggle:hover {
+  background: rgba(244, 241, 222, 0.15);
 }
 
 /* Hero content */
