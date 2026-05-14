@@ -84,7 +84,7 @@
   margin-bottom: var(--sp-md);
 }
 .stat-value {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: var(--fs-lg);
   font-weight: var(--fw-extrabold);
   color: var(--cl-text-on-surface);
@@ -247,7 +247,7 @@
 }
 
 .trip-mini-name {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: var(--fs-sm);
   font-weight: var(--fw-bold);
   color: var(--cl-text-on-surface);

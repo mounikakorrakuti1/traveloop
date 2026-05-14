@@ -51,7 +51,7 @@ export function Navbar() {
       <div className="navbar-inner">
         {/* Logo */}
         <Link to={ROUTES.home} className="navbar-logo">
-          <span className="navbar-logo-text">Travel<Plane size={20} style={{ display: "inline-block", marginInline: "2px", verticalAlign: "middle", color: "var(--cl-accent)" }} />Loop</span>
+          <span className="navbar-logo-text">Travel<Plane size={28} style={{ display: "inline-block", marginInline: "4px", verticalAlign: "middle", color: "var(--cl-accent)" }} />Loop</span>
         </Link>
 
         {/* Desktop Nav */}
