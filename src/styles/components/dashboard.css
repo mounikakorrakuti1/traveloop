@@ -250,7 +250,7 @@
   font-family: var(--font-display);
   font-size: var(--fs-sm);
   font-weight: var(--fw-bold);
-  color: var(--cl-text);
+  color: var(--cl-text-on-surface);
   margin-bottom: var(--sp-xs);
 }
 .trip-mini-place {

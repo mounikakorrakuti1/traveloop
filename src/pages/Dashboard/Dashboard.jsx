@@ -124,11 +124,11 @@ export default function DashboardPage() {
             <div style={{ display: "flex", gap: "var(--sp-md)", marginBottom: "var(--sp-lg)" }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "var(--br-lg)", background: "var(--cl-teal)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "var(--shadow-teal)" }}><Sparkles size={28} /></div>
               <div>
-                <h3 style={{ margin: 0, fontSize: "var(--fs-lg)", fontWeight: "var(--fw-bold)" }}>Traveloop Pro</h3>
-                <p style={{ margin: 0, fontSize: "var(--fs-sm)", color: "var(--cl-text-muted)" }}>Unlock AI Features</p>
+                <h3 style={{ margin: 0, fontSize: "var(--fs-lg)", fontWeight: "var(--fw-bold)", color: "var(--cl-text-on-surface)" }}>Traveloop Pro</h3>
+                <p style={{ margin: 0, fontSize: "var(--fs-sm)", color: "rgba(244, 241, 222, 0.7)" }}>Unlock AI Features</p>
               </div>
             </div>
-            <p style={{ fontSize: "var(--fs-sm)", color: "var(--cl-text-muted)", marginBottom: "var(--sp-xl)", flex: 1, lineHeight: "1.6" }}>Add a Gemini API key in your profile to enable smart budget estimates and packing suggestions perfectly tailored to you.</p>
+            <p style={{ fontSize: "var(--fs-sm)", color: "rgba(244, 241, 222, 0.7)", marginBottom: "var(--sp-xl)", flex: 1, lineHeight: "1.6" }}>Add a Gemini API key in your profile to enable smart budget estimates and packing suggestions perfectly tailored to you.</p>
             <Link to={ROUTES.profile} className="btn btn-secondary" style={{ width: "100%", justifyContent: "center", padding: "var(--sp-md)" }}>Configure Profile</Link>
           </div>
         </div>
