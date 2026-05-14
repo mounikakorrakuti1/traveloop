@@ -152,9 +152,9 @@ export default function DashboardPage() {
                     <div className="trip-mini-thumb" style={{ height: "12rem", width: "100%", margin: 0, borderRadius: 0 }}>
                       <SmartImage src={trip.coverPhotoUrl} fallbackSrc={getTripCardCoverUrl(trip)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
-                    <div className="trip-mini-body" style={{ padding: "var(--sp-md)", background: "var(--cl-surface)", flex: 1, display: "flex", flexDirection: "column" }}>
+                    <div className="trip-mini-body" style={{ padding: "var(--sp-md)", background: "var(--cl-surface)", color: "var(--cl-text-on-surface)", flex: 1, display: "flex", flexDirection: "column" }}>
                       <div className="trip-mini-name" style={{ fontSize: "var(--fs-lg)", fontWeight: "var(--fw-bold)", marginBottom: "var(--sp-sm)" }}>{trip.title}</div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-xs)", color: "var(--cl-text-muted)", fontSize: "var(--fs-sm)", marginTop: "auto" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "var(--sp-xs)", color: "var(--cl-text-on-surface)", opacity: 0.7, fontSize: "var(--fs-sm)", marginTop: "auto" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-xs)" }}><MapPin size={14} /> {trip.tripType}</div>
                       </div>
                     </div>
@@ -196,7 +196,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="dest-tile-name" style={{ padding: "var(--sp-md)", fontWeight: "var(--fw-bold)", fontSize: "var(--fs-sm)", textAlign: "center", background: "var(--cl-surface)", color: "var(--cl-accent)", opacity: 1, display: "block" }}>
                       <div>{city.name}</div>
-                      {city.weather?.condition ? <div style={{ color: "var(--cl-text-muted)", fontSize: "var(--fs-2xs)", fontWeight: "var(--fw-medium)", marginTop: "4px" }}>{city.weather.temp}C · {city.weather.condition}</div> : null}
+                      {city.weather?.condition ? <div style={{ color: "var(--cl-text-on-surface)", opacity: 0.7, fontSize: "var(--fs-2xs)", fontWeight: "var(--fw-medium)", marginTop: "4px" }}>{city.weather.temp}C · {city.weather.condition}</div> : null}
                     </div>
                   </Link>
                 ))}

@@ -127,8 +127,8 @@ export default function TripDetailPage() {
               <link.icon size={28} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "var(--fs-lg)", fontWeight: "var(--fw-bold)", color: "var(--cl-text)", marginBottom: "4px" }}>{link.label}</div>
-              <p style={{ fontSize: "var(--fs-sm)", color: "var(--cl-text-muted)", margin: 0, lineHeight: 1.5 }}>{link.desc}</p>
+              <div style={{ fontSize: "var(--fs-lg)", fontWeight: "var(--fw-bold)", color: "var(--cl-text-on-surface)", marginBottom: "4px" }}>{link.label}</div>
+              <p style={{ fontSize: "var(--fs-sm)", color: "var(--cl-text-on-surface)", opacity: 0.7, margin: 0, lineHeight: 1.5 }}>{link.desc}</p>
             </div>
           </Link>
         ))}
@@ -136,15 +136,15 @@ export default function TripDetailPage() {
 
       <div style={{ display: "flex", gap: "var(--sp-lg)", flexWrap: "wrap" }}>
         <div className="card" style={{ flex: 1, minWidth: "15rem", background: "var(--cl-surface)", border: "1px solid var(--cl-border)", padding: "var(--sp-xl)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-xs)", color: "var(--cl-text-muted)", marginBottom: "var(--sp-sm)", fontWeight: "var(--fw-semibold)", textTransform: "uppercase", fontSize: "var(--fs-xs)", letterSpacing: "0.05em" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-xs)", color: "var(--cl-text-on-surface)", opacity: 0.6, marginBottom: "var(--sp-sm)", fontWeight: "var(--fw-semibold)", textTransform: "uppercase", fontSize: "var(--fs-xs)", letterSpacing: "0.05em" }}>
             <Banknote size={16} /> Total Budget
           </div>
           <div style={{ fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: "800", color: "var(--cl-teal)" }}>{usd(getTripBudget(trip))}</div>
-          <p style={{ color: "var(--cl-text-muted)", fontSize: "var(--fs-sm)", margin: "var(--sp-xs) 0 0 0" }}>Cumulative total of all planned activities and expenses.</p>
+          <p style={{ color: "var(--cl-text-on-surface)", opacity: 0.7, fontSize: "var(--fs-sm)", margin: "var(--sp-xs) 0 0 0" }}>Cumulative total of all planned activities and expenses.</p>
         </div>
         
         <div className="card" style={{ flex: 1, minWidth: "20rem", background: "var(--cl-surface)", border: "1px solid var(--cl-border)", padding: "var(--sp-xl)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-xs)", color: "var(--cl-text-muted)", marginBottom: "var(--sp-sm)", fontWeight: "var(--fw-semibold)", textTransform: "uppercase", fontSize: "var(--fs-xs)", letterSpacing: "0.05em" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-xs)", color: "var(--cl-text-on-surface)", opacity: 0.6, marginBottom: "var(--sp-sm)", fontWeight: "var(--fw-semibold)", textTransform: "uppercase", fontSize: "var(--fs-xs)", letterSpacing: "0.05em" }}>
             <Globe size={16} /> Public Sharing
           </div>
           

@@ -95,7 +95,7 @@ export default function TripListPage() {
             {trips.map((trip) => {
               const meta = STATUS_META[trip.status] ?? STATUS_META.planning;
               return (
-                <Link key={trip.id} to={ROUTES.tripDetail(trip.id)} className="card card-hover trip-list-card" style={{ padding: "var(--sp-md)", display: "flex", alignItems: "center", gap: "var(--sp-xl)", textDecoration: "none", color: "var(--cl-text)", border: "1px solid var(--cl-border)", background: "var(--cl-surface)", borderRadius: "var(--br-xl)" }}>
+                <Link key={trip.id} to={ROUTES.tripDetail(trip.id)} className="card card-hover trip-list-card" style={{ padding: "var(--sp-md)", display: "flex", alignItems: "center", gap: "var(--sp-xl)", textDecoration: "none", color: "var(--cl-text-on-surface)", border: "1px solid var(--cl-border)", background: "var(--cl-surface)", borderRadius: "var(--br-xl)" }}>
                   <div className="trip-list-thumb" style={{ width: "120px", height: "80px", borderRadius: "var(--br-lg)", overflow: "hidden", flexShrink: 0 }} aria-hidden>
                     <SmartImage
                       src={trip.coverPhotoUrl}
@@ -108,7 +108,7 @@ export default function TripListPage() {
                   
                   <div style={{ flex: 1 }}>
                     <div className="trip-list-name" style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", marginBottom: "var(--sp-xs)" }}>{trip.title}</div>
-                    <div className="trip-list-meta" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--sp-lg)", color: "var(--cl-text-muted)", fontSize: "var(--fs-sm)" }}>
+                    <div className="trip-list-meta" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "var(--sp-lg)", color: "var(--cl-text-on-surface)", opacity: 0.7, fontSize: "var(--fs-sm)" }}>
                       <span className="trip-list-meta-item" style={{ display: "flex", alignItems: "center", gap: "var(--sp-xs)" }}>
                         <span className={`trip-section-dot ${meta.dot}`} style={{ width: "8px", height: "8px", borderRadius: "50%", background: trip.status === "completed" ? "var(--cl-teal)" : trip.status === "ongoing" ? "var(--cl-warning)" : "var(--cl-accent)" }} /> 
                         <span style={{ fontWeight: "var(--fw-semibold)" }}>{meta.label}</span>

@@ -67,7 +67,13 @@ export default function CitiesPage() {
       )}
 
       {isLoading ? (
-        <div className="notes-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "var(--sp-xl)" }}>
+        <div className="explore-grid" style={{ 
+          display: "grid",
+          gridTemplateColumns: "1fr", 
+          gap: "var(--sp-lg)",
+          paddingTop: "var(--sp-lg)",
+          paddingBottom: "var(--sp-4xl)" 
+        }}>
           {Array.from({ length: 8 }).map((_, i) => (
             <SkeletonCard key={i} imageHeight="16rem" />
           ))}
@@ -79,10 +85,26 @@ export default function CitiesPage() {
           <p>We couldn't find any destinations matching your search.</p>
         </div>
       ) : (
-        <div className="notes-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "var(--sp-xl)" }}>
+        <div className="explore-grid" style={{ 
+          display: "grid",
+          gridTemplateColumns: "1fr", 
+          rowGap: "var(--sp-lg)",
+          paddingTop: "var(--sp-lg)",
+          paddingBottom: "var(--sp-4xl)" 
+        }}>
           {visibleCities.map((city) => (
-            <Link key={city.id} to={ROUTES.cityDetail(city.id)} className="card card-hover city-card-link" style={{ display: "flex", flexDirection: "column", height: "100%", padding: 0, overflow: "hidden", border: "none", boxShadow: "var(--shadow-sm)" }}>
-              <div className="city-card-photo" style={{ height: "16rem", position: "relative" }}>
+            <Link key={city.id} to={ROUTES.cityDetail(city.id)} className="card card-hover city-card-link" style={{ 
+              display: "flex", 
+              flexDirection: "column", 
+              height: "100%", 
+              padding: 0, 
+              overflow: "hidden", 
+              border: "1px solid var(--cl-border)", 
+              boxShadow: "var(--shadow-md)",
+              borderRadius: "var(--br-2xl)",
+              background: "var(--cl-surface)"
+            }}>
+              <div className="city-card-photo" style={{ height: "18rem", position: "relative" }}>
                 <CityPlaceImage
                   city={city}
                   alt={city.name}
@@ -114,12 +136,12 @@ export default function CitiesPage() {
               
               <div style={{ padding: "var(--sp-md)", display: "flex", flexDirection: "column", gap: "var(--sp-sm)", flex: 1, background: "var(--cl-surface)" }}>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--sp-xs)" }}>
-                  {city.bestSeason && <span style={{ background: "var(--cl-bg-subtle)", padding: "2px 8px", borderRadius: "var(--br-full)", fontSize: "var(--fs-xs)", color: "var(--cl-text)" }}>{city.bestSeason}</span>}
-                  {city.areaType && <span style={{ background: "var(--cl-bg-subtle)", padding: "2px 8px", borderRadius: "var(--br-full)", fontSize: "var(--fs-xs)", color: "var(--cl-text)" }}>{city.areaType}</span>}
-                  {city.costIndex && <span style={{ background: "var(--cl-accent-light)", padding: "2px 8px", borderRadius: "var(--br-full)", fontSize: "var(--fs-xs)", color: "var(--cl-accent)" }}>{city.costIndex}</span>}
+                  {city.bestSeason && <span style={{ background: "rgba(255,255,255,0.1)", color: "var(--cl-text-on-surface)", padding: "2px 8px", borderRadius: "var(--br-full)", fontSize: "var(--fs-xs)" }}>{city.bestSeason}</span>}
+                  {city.areaType && <span style={{ background: "rgba(255,255,255,0.1)", color: "var(--cl-text-on-surface)", padding: "2px 8px", borderRadius: "var(--br-full)", fontSize: "var(--fs-xs)" }}>{city.areaType}</span>}
+                  {city.costIndex && <span style={{ background: "var(--cl-accent)", color: "white", padding: "2px 8px", borderRadius: "var(--br-full)", fontSize: "var(--fs-xs)", fontWeight: "var(--fw-bold)" }}>{city.costIndex}</span>}
                 </div>
                 {city.isRegionalGem && (
-                  <div style={{ color: "var(--cl-teal)", fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", display: "flex", alignItems: "center", gap: "var(--sp-xs)" }}>
+                  <div style={{ color: "#4FD1C5", fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", display: "flex", alignItems: "center", gap: "var(--sp-xs)" }}>
                     ✨ Regional Gem
                   </div>
                 )}
